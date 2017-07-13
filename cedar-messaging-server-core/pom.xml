@@ -61,6 +61,11 @@
       <artifactId>cedar-search-operations</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>io.dropwizard</groupId>
+      <artifactId>dropwizard-hibernate</artifactId>
+    </dependency>
+
   </dependencies>
 
 
