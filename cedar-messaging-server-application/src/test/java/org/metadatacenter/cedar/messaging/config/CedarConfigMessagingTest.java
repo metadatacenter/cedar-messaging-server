@@ -31,6 +31,8 @@ public class CedarConfigMessagingTest {
     env.put(CedarEnvironmentVariable.CEDAR_MESSAGING_ADMIN_PORT.getName(), "9111");
     env.put(CedarEnvironmentVariable.CEDAR_MESSAGING_STOP_PORT.getName(), "9211");
 
+    env.put(CedarEnvironmentVariable.CEDAR_USER_HTTP_PORT.getName(), "9005");
+
     TestUtil.setEnv(env);
   }
 
