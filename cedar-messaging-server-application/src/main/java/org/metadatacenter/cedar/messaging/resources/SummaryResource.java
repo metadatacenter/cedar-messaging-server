@@ -1,6 +1,7 @@
 package org.metadatacenter.cedar.messaging.resources;
 
 import com.codahale.metrics.annotation.Timed;
+import io.dropwizard.hibernate.UnitOfWork;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.messaging.dao.PersistentMessageDAO;
@@ -36,6 +37,7 @@ public class SummaryResource extends AbstractMessagingResource {
 
   @GET
   @Timed
+  @UnitOfWork
   @Path("/{id}")
   public Response getSummary() throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);

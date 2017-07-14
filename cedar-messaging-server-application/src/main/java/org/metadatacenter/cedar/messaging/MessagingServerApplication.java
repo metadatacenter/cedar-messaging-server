@@ -1,6 +1,5 @@
 package org.metadatacenter.cedar.messaging;
 
-import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.hibernate.HibernateBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -9,6 +8,7 @@ import org.metadatacenter.cedar.messaging.resources.IndexResource;
 import org.metadatacenter.cedar.messaging.resources.MessagesResource;
 import org.metadatacenter.cedar.messaging.resources.SummaryResource;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceApplication;
+import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.messaging.dao.PersistentMessageDAO;
 import org.metadatacenter.messaging.dao.PersistentUserDAO;
 import org.metadatacenter.messaging.model.PersistentMessage;
@@ -18,19 +18,9 @@ import org.metadatacenter.model.ServerName;
 
 public class MessagingServerApplication extends CedarMicroserviceApplication<MessagingServerConfiguration> {
 
-  private final HibernateBundle<MessagingServerConfiguration> hibernate = new
-      HibernateBundle<MessagingServerConfiguration>(
-          PersistentUser.class,
-          PersistentMessage.class,
-          PersistentUserMessage.class
-      ) {
-        @Override
-        public DataSourceFactory getDataSourceFactory(
-            MessagingServerConfiguration configuration
-        ) {
-          return configuration.getDatabase();
-        }
-      };
+  private HibernateBundle<MessagingServerConfiguration> hibernate;
+  private PersistentUserDAO userDAO;
+  private PersistentMessageDAO messageDAO;
 
   public static void main(String[] args) throws Exception {
     new MessagingServerApplication().run(args);
@@ -42,12 +32,21 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
   }
 
   @Override
-  public void initializeApp() {
+  protected void initializeWithBootstrap(Bootstrap<MessagingServerConfiguration> bootstrap, CedarConfig cedarConfig) {
+    hibernate = new CedarMessagingHibernateBundle(
+        cedarConfig,
+        PersistentMessage.class, new Class[]{
+        PersistentUser.class,
+        PersistentUserMessage.class
+    }
+    );
+    bootstrap.addBundle(hibernate);
   }
 
-  //@Override
-  protected void initializeWithBootstrap(Bootstrap<MessagingServerConfiguration> bootstrap) {
-    bootstrap.addBundle(hibernate);
+  @Override
+  public void initializeApp() {
+    userDAO = new PersistentUserDAO(hibernate.getSessionFactory());
+    messageDAO = new PersistentMessageDAO(hibernate.getSessionFactory());
   }
 
   @Override
@@ -56,12 +55,13 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
     final IndexResource index = new IndexResource();
     environment.jersey().register(index);
 
+    final MessagesResource messages = new MessagesResource(cedarConfig, userDAO, messageDAO);
+    environment.jersey().register(messages);
+
+    final SummaryResource summary = new SummaryResource(cedarConfig, userDAO, messageDAO);
+    environment.jersey().register(summary);
+
     final MessagingServerHealthCheck healthCheck = new MessagingServerHealthCheck();
     environment.healthChecks().register("message", healthCheck);
-
-    final PersistentUserDAO userDAO = new PersistentUserDAO(hibernate.getSessionFactory());
-    final PersistentMessageDAO messageDAO = new PersistentMessageDAO(hibernate.getSessionFactory());
-    environment.jersey().register(new MessagesResource(cedarConfig, userDAO, messageDAO));
-    environment.jersey().register(new SummaryResource(cedarConfig, userDAO, messageDAO));
   }
 }

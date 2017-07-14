@@ -60,6 +60,7 @@ public class MessagesResource extends AbstractMessagingResource {
 
   @POST
   @Timed
+  @UnitOfWork
   public Response postMessage() throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
@@ -72,6 +73,7 @@ public class MessagesResource extends AbstractMessagingResource {
 
   @PATCH
   @Timed
+  @UnitOfWork
   @Path("/{id}")
   public Response patchMessage(@PathParam(PP_ID) String id) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);

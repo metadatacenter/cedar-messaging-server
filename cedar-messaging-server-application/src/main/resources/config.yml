@@ -22,12 +22,3 @@ logging:
       archivedLogFilenamePattern: ${CEDAR_HOME}/log/cedar-messaging-server/dropwizard-%d.log
       archivedFileCount: 5
       timeZone: UTC
-database:
-  driverClass: com.mysql.cj.jdbc.Driver
-  user: ${CEDAR_MESSAGING_MYSQL_USER}
-  password: ${CEDAR_MESSAGING_MYSQL_PASSWORD}
-  url: jdbc:mysql://${CEDAR_MESSAGING_MYSQL_HOST}:${CEDAR_MESSAGING_MYSQL_PORT}/${CEDAR_MESSAGING_MYSQL_DB}
-  properties:
-    createDatabaseIfNotExist: true
-    serverTimezone: America/Los_Angeles
-    useSSL: false
