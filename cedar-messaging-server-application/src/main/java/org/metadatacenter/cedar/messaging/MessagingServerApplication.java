@@ -45,8 +45,8 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
   public void initializeApp() {
   }
 
-  @Override
-  protected void initializeWithBootsrap(Bootstrap<MessagingServerConfiguration> bootstrap) {
+  //@Override
+  protected void initializeWithBootstrap(Bootstrap<MessagingServerConfiguration> bootstrap) {
     bootstrap.addBundle(hibernate);
   }
 
