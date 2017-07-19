@@ -38,14 +38,14 @@ public class SummaryResource extends AbstractMessagingResource {
   @GET
   @Timed
   @UnitOfWork
-  @Path("/{id}")
+  @Path("")
   public Response getSummary() throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
 
     Map<String, Object> map = new HashMap<>();
-    map.put("total", 10);
-    map.put("unread", 4);
+    map.put("total", userDAO.getTotalCountForUser(c.getCedarUser().getId()));
+    map.put("unread", userDAO.getUnreadCountForUser(c.getCedarUser().getId()));
 
     return Response.ok().entity(map).build();
   }

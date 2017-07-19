@@ -9,11 +9,8 @@ import org.metadatacenter.cedar.messaging.resources.MessagesResource;
 import org.metadatacenter.cedar.messaging.resources.SummaryResource;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceApplication;
 import org.metadatacenter.config.CedarConfig;
-import org.metadatacenter.messaging.dao.PersistentMessageDAO;
-import org.metadatacenter.messaging.dao.PersistentUserDAO;
-import org.metadatacenter.messaging.model.PersistentMessage;
-import org.metadatacenter.messaging.model.PersistentUser;
-import org.metadatacenter.messaging.model.PersistentUserMessage;
+import org.metadatacenter.messaging.dao.*;
+import org.metadatacenter.messaging.model.*;
 import org.metadatacenter.model.ServerName;
 
 public class MessagingServerApplication extends CedarMicroserviceApplication<MessagingServerConfiguration> {
@@ -21,6 +18,9 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
   private HibernateBundle<MessagingServerConfiguration> hibernate;
   private PersistentUserDAO userDAO;
   private PersistentMessageDAO messageDAO;
+  private PersistentUserMessageDAO userMessageDAO;
+  private PersistentMessageSenderDAO messageSenderDAO;
+  private PersistentMessageRecipientDAO messageRecipientDAO;
 
   public static void main(String[] args) throws Exception {
     new MessagingServerApplication().run(args);
@@ -37,7 +37,9 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
         cedarConfig,
         PersistentMessage.class, new Class[]{
         PersistentUser.class,
-        PersistentUserMessage.class
+        PersistentUserMessage.class,
+        PersistentMessageRecipient.class,
+        PersistentMessageSender.class
     }
     );
     bootstrap.addBundle(hibernate);
@@ -47,6 +49,9 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
   public void initializeApp() {
     userDAO = new PersistentUserDAO(hibernate.getSessionFactory());
     messageDAO = new PersistentMessageDAO(hibernate.getSessionFactory());
+    userMessageDAO = new PersistentUserMessageDAO(hibernate.getSessionFactory());
+    messageSenderDAO = new PersistentMessageSenderDAO(hibernate.getSessionFactory());
+    messageRecipientDAO = new PersistentMessageRecipientDAO(hibernate.getSessionFactory());
   }
 
   @Override
@@ -55,7 +60,8 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
     final IndexResource index = new IndexResource();
     environment.jersey().register(index);
 
-    final MessagesResource messages = new MessagesResource(cedarConfig, userDAO, messageDAO);
+    final MessagesResource messages = new MessagesResource(cedarConfig, userDAO, messageDAO, userMessageDAO,
+        messageSenderDAO, messageRecipientDAO);
     environment.jersey().register(messages);
 
     final SummaryResource summary = new SummaryResource(cedarConfig, userDAO, messageDAO);

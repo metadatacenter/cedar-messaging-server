@@ -10,11 +10,7 @@ public class PersistentMessageDAO extends AbstractDAO<PersistentMessage> {
     super(factory);
   }
 
-  public PersistentMessage findById(Long id) {
-    return get(id);
-  }
-
-  public long create(PersistentMessage message) {
-    return persist(message).getId();
+  public Long create(PersistentMessage persistentMessage) {
+    return persist(persistentMessage).getId();
   }
 }

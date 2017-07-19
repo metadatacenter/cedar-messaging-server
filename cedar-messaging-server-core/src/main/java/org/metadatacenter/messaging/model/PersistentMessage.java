@@ -1,6 +1,12 @@
 package org.metadatacenter.messaging.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
 import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table(name = "message",
@@ -12,11 +18,33 @@ public class PersistentMessage {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
+  @Lob
+  @Column(length = 512)
+  @JsonProperty("@id")
   private String cid;
 
-  public Long getId() {
-    return id;
-  }
+  @Lob
+  @Column(length = 1024)
+  private String subject;
+
+  @Lob
+  private String body;
+
+  private LocalDateTime creationDate;
+
+  private LocalDateTime expirationDate;
+
+  @ManyToOne(optional = false, fetch = FetchType.LAZY)
+  @Fetch(FetchMode.JOIN)
+  @JoinColumn(name = "message_sender",
+      referencedColumnName = "id",
+      unique = false,
+      nullable = true,
+      insertable = true,
+      updatable = true
+  )
+  @JsonProperty("from")
+  private PersistentMessageSender sender;
 
   public void setId(Long id) {
     this.id = id;
@@ -29,4 +57,49 @@ public class PersistentMessage {
   public void setCid(String cid) {
     this.cid = cid;
   }
+
+  public Long getId() {
+    return id;
+  }
+
+  public String getSubject() {
+    return subject;
+  }
+
+  public void setSubject(String subject) {
+    this.subject = subject;
+  }
+
+  public String getBody() {
+    return body;
+  }
+
+  public void setBody(String body) {
+    this.body = body;
+  }
+
+  public LocalDateTime getCreationDate() {
+    return creationDate;
+  }
+
+  public void setCreationDate(LocalDateTime creationDate) {
+    this.creationDate = creationDate;
+  }
+
+  public LocalDateTime getExpirationDate() {
+    return expirationDate;
+  }
+
+  public void setExpirationDate(LocalDateTime expirationDate) {
+    this.expirationDate = expirationDate;
+  }
+
+  public PersistentMessageSender getSender() {
+    return sender;
+  }
+
+  public void setSender(PersistentMessageSender sender) {
+    this.sender = sender;
+  }
+
 }

@@ -1,8 +1,13 @@
 package org.metadatacenter.messaging.dao;
 
 import io.dropwizard.hibernate.AbstractDAO;
+import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
 import org.metadatacenter.messaging.model.PersistentUser;
+import org.metadatacenter.messaging.model.PersistentUserMessage;
+import org.metadatacenter.messaging.model.PersistentUserMessageStatus;
 
 public class PersistentUserDAO extends AbstractDAO<PersistentUser> {
 
@@ -10,11 +15,30 @@ public class PersistentUserDAO extends AbstractDAO<PersistentUser> {
     super(factory);
   }
 
-  public PersistentUser findById(Long id) {
-    return get(id);
+  public long getTotalCountForUser(String id) {
+    Criteria criteria = this.currentSession().createCriteria(PersistentUserMessage.class, "usermessage");
+    criteria.createAlias("usermessage.recipient", "recipient", Criteria.INNER_JOIN);
+    criteria.add(Restrictions.eq("recipient.cid", id));
+    criteria.setProjection(Projections.rowCount());
+    return (Long) criteria.uniqueResult();
   }
 
-  public long create(PersistentUser user) {
-    return persist(user).getId();
+  public long getUnreadCountForUser(String id) {
+    Criteria criteria = this.currentSession().createCriteria(PersistentUserMessage.class, "usermessage");
+    criteria.createAlias("usermessage.recipient", "recipient", Criteria.INNER_JOIN);
+    criteria.add(Restrictions.eq("recipient.cid", id));
+    criteria.add(Restrictions.eq("status", PersistentUserMessageStatus.UNREAD));
+    criteria.setProjection(Projections.rowCount());
+    return (Long) criteria.uniqueResult();
+  }
+
+  public Long create(PersistentUser persistentRecipientUser) {
+    return persist(persistentRecipientUser).getId();
+  }
+
+  public PersistentUser findByCid(String id) {
+    Criteria criteria = this.currentSession().createCriteria(PersistentUser.class);
+    criteria.add(Restrictions.eq("cid", id));
+    return (PersistentUser) criteria.uniqueResult();
   }
 }
