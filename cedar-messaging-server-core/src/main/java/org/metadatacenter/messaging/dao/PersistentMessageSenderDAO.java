@@ -1,12 +1,13 @@
 package org.metadatacenter.messaging.dao;
 
 import io.dropwizard.hibernate.AbstractDAO;
-import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.metadatacenter.messaging.model.PersistentMessageSender;
-import org.metadatacenter.messaging.model.PersistentUserMessage;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
 public class PersistentMessageSenderDAO extends AbstractDAO<PersistentMessageSender> {
 
@@ -15,9 +16,13 @@ public class PersistentMessageSenderDAO extends AbstractDAO<PersistentMessageSen
   }
 
   public PersistentMessageSender findByCid(String id) {
-    Criteria criteria = this.currentSession().createCriteria(PersistentMessageSender.class);
-    criteria.add(Restrictions.eq("cid", id));
-    return (PersistentMessageSender) criteria.uniqueResult();
+    CriteriaBuilder builder = currentSession().getCriteriaBuilder();
+    CriteriaQuery<PersistentMessageSender> query = builder.createQuery(PersistentMessageSender.class);
+    Root<PersistentMessageSender> root = query.from(PersistentMessageSender.class);
+    query.select(root);
+    query.where(builder.equal(root.get("cid"), id));
+    Query<PersistentMessageSender> q = currentSession().createQuery(query);
+    return q.uniqueResult();
   }
 
   public Long create(PersistentMessageSender persistentMessageSender) {
