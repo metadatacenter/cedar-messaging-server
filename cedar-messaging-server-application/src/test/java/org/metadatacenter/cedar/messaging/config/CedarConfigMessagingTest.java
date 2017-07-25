@@ -40,6 +40,7 @@ public class CedarConfigMessagingTest {
 
     env.put(CedarEnvironmentVariable.CEDAR_USER_HTTP_PORT.getName(), "9005");
 
+    CedarEnvironmentUtil.copy(CedarEnvironmentVariable.CEDAR_ADMIN_USER_API_KEY, env);
     CedarEnvironmentUtil.copy(CedarEnvironmentVariable.CEDAR_TEST_USER1_ID, env);
     CedarEnvironmentUtil.copy(CedarEnvironmentVariable.CEDAR_TEST_USER2_ID, env);
 
