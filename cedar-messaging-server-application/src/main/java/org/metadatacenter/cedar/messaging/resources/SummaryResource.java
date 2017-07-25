@@ -38,7 +38,6 @@ public class SummaryResource extends AbstractMessagingResource {
   @GET
   @Timed
   @UnitOfWork
-  @Path("")
   public Response getSummary() throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);

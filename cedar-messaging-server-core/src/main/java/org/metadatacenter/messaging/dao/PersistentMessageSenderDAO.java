@@ -4,6 +4,7 @@ import io.dropwizard.hibernate.AbstractDAO;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.metadatacenter.messaging.model.PersistentMessageSender;
+import org.metadatacenter.messaging.model.PersistentMessageSenderProcessId;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -27,5 +28,15 @@ public class PersistentMessageSenderDAO extends AbstractDAO<PersistentMessageSen
 
   public Long create(PersistentMessageSender persistentMessageSender) {
     return persist(persistentMessageSender).getId();
+  }
+
+  public PersistentMessageSender findByProcessId(PersistentMessageSenderProcessId processId) {
+    CriteriaBuilder builder = currentSession().getCriteriaBuilder();
+    CriteriaQuery<PersistentMessageSender> query = builder.createQuery(PersistentMessageSender.class);
+    Root<PersistentMessageSender> root = query.from(PersistentMessageSender.class);
+    query.select(root);
+    query.where(builder.equal(root.get("processId"), processId));
+    Query<PersistentMessageSender> q = currentSession().createQuery(query);
+    return q.uniqueResult();
   }
 }

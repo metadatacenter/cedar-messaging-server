@@ -18,8 +18,6 @@ public class PersistentMessage {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @Lob
-  @Column(length = 512)
   @JsonProperty("@id")
   private String cid;
 
@@ -43,8 +41,18 @@ public class PersistentMessage {
       insertable = true,
       updatable = true
   )
-  @JsonProperty("from")
   private PersistentMessageSender sender;
+
+  @ManyToOne(optional = false, fetch = FetchType.LAZY)
+  @Fetch(FetchMode.JOIN)
+  @JoinColumn(name = "message_recipient",
+      referencedColumnName = "id",
+      unique = false,
+      nullable = true,
+      insertable = true,
+      updatable = true
+  )
+  private PersistentMessageRecipient recipient;
 
   public void setId(Long id) {
     this.id = id;
@@ -102,4 +110,11 @@ public class PersistentMessage {
     this.sender = sender;
   }
 
+  public PersistentMessageRecipient getRecipient() {
+    return recipient;
+  }
+
+  public void setRecipient(PersistentMessageRecipient recipient) {
+    this.recipient = recipient;
+  }
 }

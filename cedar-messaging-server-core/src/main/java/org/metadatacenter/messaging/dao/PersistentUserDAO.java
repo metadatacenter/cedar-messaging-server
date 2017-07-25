@@ -20,8 +20,8 @@ public class PersistentUserDAO extends AbstractDAO<PersistentUser> {
     CriteriaBuilder builder = currentSession().getCriteriaBuilder();
     CriteriaQuery<Long> countCriteria = builder.createQuery(Long.class);
     Root<PersistentUserMessage> countRoot = countCriteria.from(PersistentUserMessage.class);
-    Join<PersistentUserMessage, PersistentMessageRecipient> recipientJoin = countRoot.join("recipient", JoinType.INNER);
-    countCriteria.where(builder.equal(recipientJoin.get("cid"), id));
+    Join<PersistentUserMessage, PersistentUser> userJoin = countRoot.join("user", JoinType.INNER);
+    countCriteria.where(builder.equal(userJoin.get("cid"), id));
     countCriteria.select(builder.count(countRoot));
     Query<Long> q = currentSession().createQuery(countCriteria);
     return q.uniqueResult();
@@ -31,9 +31,9 @@ public class PersistentUserDAO extends AbstractDAO<PersistentUser> {
     CriteriaBuilder builder = currentSession().getCriteriaBuilder();
     CriteriaQuery<Long> countCriteria = builder.createQuery(Long.class);
     Root<PersistentUserMessage> countRoot = countCriteria.from(PersistentUserMessage.class);
-    Join<PersistentUserMessage, PersistentMessageRecipient> recipientJoin = countRoot.join("recipient", JoinType.INNER);
+    Join<PersistentUserMessage, PersistentUser> userJoin = countRoot.join("user", JoinType.INNER);
     countCriteria.where(builder.and(
-        builder.equal(recipientJoin.get("cid"), id)),
+        builder.equal(userJoin.get("cid"), id)),
         builder.equal(countRoot.get("status"), PersistentUserMessageStatus.UNREAD));
     countCriteria.select(builder.count(countRoot));
     Query<Long> q = currentSession().createQuery(countCriteria);

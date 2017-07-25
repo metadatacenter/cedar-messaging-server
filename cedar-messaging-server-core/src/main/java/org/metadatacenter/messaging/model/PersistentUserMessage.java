@@ -15,14 +15,14 @@ public class PersistentUserMessage {
 
   @ManyToOne(optional = false, fetch = FetchType.LAZY)
   @Fetch(FetchMode.JOIN)
-  @JoinColumn(name = "user_message_recipient",
+  @JoinColumn(name = "user_message_user",
       referencedColumnName = "id",
       unique = false,
       nullable = true,
       insertable = true,
       updatable = true
   )
-  private PersistentUser recipient;
+  private PersistentUser user;
 
   @ManyToOne(optional = false, fetch = FetchType.LAZY)
   @Fetch(FetchMode.JOIN)
@@ -46,12 +46,12 @@ public class PersistentUserMessage {
     this.id = id;
   }
 
-  public PersistentUser getRecipient() {
-    return recipient;
+  public PersistentUser getUser() {
+    return user;
   }
 
-  public void setRecipient(PersistentUser recipient) {
-    this.recipient = recipient;
+  public void setUser(PersistentUser user) {
+    this.user = user;
   }
 
   public PersistentMessage getMessage() {

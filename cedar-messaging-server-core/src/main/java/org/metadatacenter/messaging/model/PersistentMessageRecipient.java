@@ -18,7 +18,6 @@ public class PersistentMessageRecipient {
   private String cid;
 
   @Enumerated(EnumType.STRING)
-  @JsonProperty("recipientType")
   private PersistentMessageRecipientType recipientType;
 
   public Long getId() {

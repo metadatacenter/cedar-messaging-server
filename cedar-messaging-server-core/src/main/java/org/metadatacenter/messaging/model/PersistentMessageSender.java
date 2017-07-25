@@ -1,5 +1,7 @@
 package org.metadatacenter.messaging.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.*;
 
 @Entity
@@ -12,12 +14,14 @@ public class PersistentMessageSender {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
+  @JsonProperty("@id")
   private String cid;
 
   @Enumerated(EnumType.STRING)
   private PersistentMessageSenderType senderType;
 
-  private String screenNameKey;
+  @Enumerated(EnumType.STRING)
+  private PersistentMessageSenderProcessId processId;
 
   public Long getId() {
     return id;
@@ -43,11 +47,11 @@ public class PersistentMessageSender {
     this.senderType = senderType;
   }
 
-  public String getScreenNameKey() {
-    return screenNameKey;
+  public PersistentMessageSenderProcessId getProcessId() {
+    return processId;
   }
 
-  public void setScreenNameKey(String screenNameKey) {
-    this.screenNameKey = screenNameKey;
+  public void setProcessId(PersistentMessageSenderProcessId processId) {
+    this.processId = processId;
   }
 }

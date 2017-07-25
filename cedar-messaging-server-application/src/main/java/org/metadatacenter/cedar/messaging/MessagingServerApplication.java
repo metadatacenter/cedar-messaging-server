@@ -45,6 +45,10 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
     bootstrap.addBundle(hibernate);
   }
 
+  public boolean isTestMode() {
+    return false;
+  }
+
   @Override
   public void initializeApp() {
     userDAO = new PersistentUserDAO(hibernate.getSessionFactory());

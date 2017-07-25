@@ -14,6 +14,9 @@ public class PersistentMessageRequest {
   @JsonProperty("to")
   private PersistentMessageRecipient recipient;
 
+  @JsonProperty("from")
+  private PersistentMessageSender sender;
+
   public String getId() {
     return id;
   }
@@ -44,5 +47,13 @@ public class PersistentMessageRequest {
 
   public void setRecipient(PersistentMessageRecipient recipient) {
     this.recipient = recipient;
+  }
+
+  public PersistentMessageSender getSender() {
+    return sender;
+  }
+
+  public void setSender(PersistentMessageSender sender) {
+    this.sender = sender;
   }
 }
