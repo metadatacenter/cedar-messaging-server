@@ -25,6 +25,7 @@ public class SummaryResourceTest extends AbstractMessagingServerResourceTest {
   }
 
   @Test
+  @Ignore
   public void checkSummaryForUser1() {
     String url = baseUrlSummary;
     Response response = client.target(url).request().header("Authorization", authHeader1).get();
@@ -32,6 +33,7 @@ public class SummaryResourceTest extends AbstractMessagingServerResourceTest {
   }
 
   @Test
+  @Ignore
   public void checkSummaryForUser2() {
     String url = baseUrlSummary;
     Response response = client.target(url).request().header("Authorization", authHeader2).get();
@@ -39,6 +41,7 @@ public class SummaryResourceTest extends AbstractMessagingServerResourceTest {
   }
 
   @Test
+  @Ignore
   public void checkSummaryForCedarAdmin() {
     String url = baseUrlSummary;
     Response response = client.target(url).request().header("Authorization", authHeaderAdmin).get();
