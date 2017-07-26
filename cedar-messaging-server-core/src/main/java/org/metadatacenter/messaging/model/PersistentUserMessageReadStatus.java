@@ -1,13 +1,13 @@
 package org.metadatacenter.messaging.model;
 
-public enum PersistentUserMessageStatus {
+public enum PersistentUserMessageReadStatus {
 
   UNREAD("unread"),
   READ("read");
 
   private final String value;
 
-  PersistentUserMessageStatus(String value) {
+  PersistentUserMessageReadStatus(String value) {
     this.value = value;
   }
 

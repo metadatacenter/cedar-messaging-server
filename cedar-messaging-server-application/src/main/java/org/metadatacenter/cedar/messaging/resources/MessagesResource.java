@@ -62,11 +62,14 @@ public class MessagesResource extends AbstractMessagingResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
 
-    Map<String, Object> map = new HashMap<>();
-    map.put("total", userDAO.getTotalCountForUser(c.getCedarUser().getId()));
-    map.put("unread", userDAO.getUnreadCountForUser(c.getCedarUser().getId()));
+    String currentUserId = c.getCedarUser().getId();
 
-    List<PersistentUserMessage> list = messageDAO.list();
+    Map<String, Object> map = new HashMap<>();
+    map.put("total", userDAO.getTotalCountForUser(currentUserId));
+    map.put("unread", userDAO.getUnreadCountForUser(currentUserId));
+    map.put("notnotified", userDAO.getNotNotifiedCountForUser(currentUserId));
+
+    List<PersistentUserMessage> list = messageDAO.listForUser(currentUserId);
 
     List<PersistentUserMessageExtract> messages = new ArrayList<>();
 
@@ -197,7 +200,8 @@ public class MessagesResource extends AbstractMessagingResource {
     persistentUserMessage.setCid(newUserMessageId);
     persistentUserMessage.setMessage(persistentMessage);
     persistentUserMessage.setUser(persistentUser);
-    persistentUserMessage.setStatus(PersistentUserMessageStatus.UNREAD);
+    persistentUserMessage.setReadStatus(PersistentUserMessageReadStatus.UNREAD);
+    persistentUserMessage.setNotificationStatus(PersistentUserMessageNotificationStatus.NOTNOTIFIED);
 
     messageDAO.create(persistentMessage);
     userMessageDAO.create(persistentUserMessage);

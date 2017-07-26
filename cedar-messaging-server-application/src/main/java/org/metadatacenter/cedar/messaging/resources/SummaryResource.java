@@ -45,6 +45,7 @@ public class SummaryResource extends AbstractMessagingResource {
     Map<String, Object> map = new HashMap<>();
     map.put("total", userDAO.getTotalCountForUser(c.getCedarUser().getId()));
     map.put("unread", userDAO.getUnreadCountForUser(c.getCedarUser().getId()));
+    map.put("notnotified", userDAO.getNotNotifiedCountForUser(c.getCedarUser().getId()));
 
     return Response.ok().entity(map).build();
   }

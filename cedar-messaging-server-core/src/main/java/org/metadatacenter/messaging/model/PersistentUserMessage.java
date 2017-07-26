@@ -38,7 +38,10 @@ public class PersistentUserMessage {
   private PersistentMessage message;
 
   @Enumerated(EnumType.STRING)
-  private PersistentUserMessageStatus status;
+  private PersistentUserMessageReadStatus readStatus;
+
+  @Enumerated(EnumType.STRING)
+  private PersistentUserMessageNotificationStatus notificationStatus;
 
   public Long getId() {
     return id;
@@ -72,11 +75,19 @@ public class PersistentUserMessage {
     this.message = message;
   }
 
-  public PersistentUserMessageStatus getStatus() {
-    return status;
+  public PersistentUserMessageReadStatus getReadStatus() {
+    return readStatus;
   }
 
-  public void setStatus(PersistentUserMessageStatus status) {
-    this.status = status;
+  public void setReadStatus(PersistentUserMessageReadStatus readStatus) {
+    this.readStatus = readStatus;
+  }
+
+  public PersistentUserMessageNotificationStatus getNotificationStatus() {
+    return notificationStatus;
+  }
+
+  public void setNotificationStatus(PersistentUserMessageNotificationStatus notificationStatus) {
+    this.notificationStatus = notificationStatus;
   }
 }

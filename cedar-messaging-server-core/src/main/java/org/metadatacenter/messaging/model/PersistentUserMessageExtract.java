@@ -5,7 +5,8 @@ import org.metadatacenter.constant.CedarConstants;
 public class PersistentUserMessageExtract {
 
   private String id;
-  private PersistentUserMessageStatus status;
+  private PersistentUserMessageReadStatus readStatus;
+  private PersistentUserMessageNotificationStatus notificationStatus;
   private String subject;
   private String body;
   private String creationDate;
@@ -13,7 +14,8 @@ public class PersistentUserMessageExtract {
 
   public PersistentUserMessageExtract(PersistentUserMessage pum, String screenName) {
     setId(pum.getCid());
-    setStatus(pum.getStatus());
+    setReadStatus(pum.getReadStatus());
+    setNotificationStatus(pum.getNotificationStatus());
 
     setSubject(pum.getMessage().getSubject());
     setBody(pum.getMessage().getBody());
@@ -32,12 +34,20 @@ public class PersistentUserMessageExtract {
     this.id = id;
   }
 
-  public PersistentUserMessageStatus getStatus() {
-    return status;
+  public PersistentUserMessageReadStatus getReadStatus() {
+    return readStatus;
   }
 
-  public void setStatus(PersistentUserMessageStatus status) {
-    this.status = status;
+  public void setReadStatus(PersistentUserMessageReadStatus readStatus) {
+    this.readStatus = readStatus;
+  }
+
+  public PersistentUserMessageNotificationStatus getNotificationStatus() {
+    return notificationStatus;
+  }
+
+  public void setNotificationStatus(PersistentUserMessageNotificationStatus notificationStatus) {
+    this.notificationStatus = notificationStatus;
   }
 
   public String getSubject() {

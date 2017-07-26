@@ -3,10 +3,10 @@ package org.metadatacenter.messaging.dao;
 import io.dropwizard.hibernate.AbstractDAO;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.metadatacenter.messaging.model.PersistentMessageRecipient;
 import org.metadatacenter.messaging.model.PersistentUser;
 import org.metadatacenter.messaging.model.PersistentUserMessage;
-import org.metadatacenter.messaging.model.PersistentUserMessageStatus;
+import org.metadatacenter.messaging.model.PersistentUserMessageNotificationStatus;
+import org.metadatacenter.messaging.model.PersistentUserMessageReadStatus;
 
 import javax.persistence.criteria.*;
 
@@ -34,7 +34,7 @@ public class PersistentUserDAO extends AbstractDAO<PersistentUser> {
     Join<PersistentUserMessage, PersistentUser> userJoin = countRoot.join("user", JoinType.INNER);
     countCriteria.where(builder.and(
         builder.equal(userJoin.get("cid"), id)),
-        builder.equal(countRoot.get("status"), PersistentUserMessageStatus.UNREAD));
+        builder.equal(countRoot.get("readStatus"), PersistentUserMessageReadStatus.UNREAD));
     countCriteria.select(builder.count(countRoot));
     Query<Long> q = currentSession().createQuery(countCriteria);
     return q.uniqueResult();
@@ -51,6 +51,19 @@ public class PersistentUserDAO extends AbstractDAO<PersistentUser> {
     query.select(root);
     query.where(builder.equal(root.get("cid"), id));
     Query<PersistentUser> q = currentSession().createQuery(query);
+    return q.uniqueResult();
+  }
+
+  public Long getNotNotifiedCountForUser(String id) {
+    CriteriaBuilder builder = currentSession().getCriteriaBuilder();
+    CriteriaQuery<Long> countCriteria = builder.createQuery(Long.class);
+    Root<PersistentUserMessage> countRoot = countCriteria.from(PersistentUserMessage.class);
+    Join<PersistentUserMessage, PersistentUser> userJoin = countRoot.join("user", JoinType.INNER);
+    countCriteria.where(builder.and(
+        builder.equal(userJoin.get("cid"), id)),
+        builder.equal(countRoot.get("notificationStatus"), PersistentUserMessageNotificationStatus.NOTNOTIFIED));
+    countCriteria.select(builder.count(countRoot));
+    Query<Long> q = currentSession().createQuery(countCriteria);
     return q.uniqueResult();
   }
 }
