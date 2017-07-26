@@ -11,7 +11,6 @@ import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.messaging.dao.*;
 import org.metadatacenter.messaging.model.*;
 import org.metadatacenter.model.CedarNodeType;
-import org.metadatacenter.rest.assertion.noun.CedarRequest;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
@@ -25,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -63,17 +62,31 @@ public class MessagesResource extends AbstractMessagingResource {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
 
-    List<PersistentUserMessage> messages = new ArrayList<>();
-
-    messages.add(new PersistentUserMessage());
-    messages.add(new PersistentUserMessage());
-
     Map<String, Object> map = new HashMap<>();
-    map.put("total", 10);
-    map.put("unread", 4);
+    map.put("total", userDAO.getTotalCountForUser(c.getCedarUser().getId()));
+    map.put("unread", userDAO.getUnreadCountForUser(c.getCedarUser().getId()));
+
+    List<PersistentUserMessage> list = messageDAO.list();
+
+    List<PersistentUserMessageExtract> messages = new ArrayList<>();
+
+    for (PersistentUserMessage pum : list) {
+      messages.add(buildUserMessageExtract(c, pum));
+    }
+
     map.put("messages", messages);
 
     return Response.ok().entity(map).build();
+  }
+
+  private PersistentUserMessageExtract buildUserMessageExtract(CedarRequestContext c, PersistentUserMessage pum)
+      throws CedarProcessingException {
+    String screenName = null;
+    if (pum.getMessage().getSender().getSenderType() == PersistentMessageSenderType.USER) {
+      CedarUserSummary userSummary = getUserSummary(pum.getMessage().getSender().getCid(), c);
+      screenName = userSummary.getScreenName();
+    }
+    return new PersistentUserMessageExtract(pum, screenName);
   }
 
   @POST
@@ -94,7 +107,7 @@ public class MessagesResource extends AbstractMessagingResource {
     }
 
     PersistentMessageRecipient recipientInQuery = message.getRecipient();
-    if (recipientInQuery == null ) {
+    if (recipientInQuery == null) {
       return CedarResponse.badRequest().errorMessage("You need to specify a recipient").build();
     }
 
@@ -103,7 +116,8 @@ public class MessagesResource extends AbstractMessagingResource {
       return CedarResponse.badRequest().errorMessage("You need to specify a valid recipient type").build();
     }
     if (recipientType == PersistentMessageRecipientType.BROADCAST) {
-      return CedarResponse.badRequest().errorMessage("Only the value 'user' is supported now as a recipient type").build();
+      return CedarResponse.badRequest().errorMessage("Only the value 'user' is supported now as a recipient type")
+          .build();
     }
 
     String recipientCid = recipientInQuery.getCid();
@@ -146,7 +160,8 @@ public class MessagesResource extends AbstractMessagingResource {
         // The request must come from a user with permission
         CedarUser currentCedarUser = c.getCedarUser();
         if (!currentCedarUser.has(CedarPermission.SEND_PROCESS_MESSAGE)) {
-          return CedarResponse.forbidden().errorMessage("You do not have permission to send a message in the name of a process").build();
+          return CedarResponse.forbidden().errorMessage("You do not have permission to send a message in the name of " +
+              "a process").build();
         }
         persistentMessageSender = messageSenderDAO.findByProcessId(processId);
         if (persistentMessageSender == null) {
@@ -172,12 +187,14 @@ public class MessagesResource extends AbstractMessagingResource {
     persistentMessage.setSubject(message.getSubject());
     persistentMessage.setBody(message.getBody());
     persistentMessage.setCid(newMessageId);
-    persistentMessage.setCreationDate(LocalDateTime.now());
+    persistentMessage.setCreationDate(ZonedDateTime.now());
     persistentMessage.setExpirationDate(null);
     persistentMessage.setSender(persistentMessageSender);
     persistentMessage.setRecipient(persistentMessageRecipient);
 
+    String newUserMessageId = linkedDataUtil.buildNewLinkedDataId(CedarNodeType.USERMESSAGE);
     PersistentUserMessage persistentUserMessage = new PersistentUserMessage();
+    persistentUserMessage.setCid(newUserMessageId);
     persistentUserMessage.setMessage(persistentMessage);
     persistentUserMessage.setUser(persistentUser);
     persistentUserMessage.setStatus(PersistentUserMessageStatus.UNREAD);
@@ -185,19 +202,8 @@ public class MessagesResource extends AbstractMessagingResource {
     messageDAO.create(persistentMessage);
     userMessageDAO.create(persistentUserMessage);
 
-
-    Map<String, Object> map = new HashMap<>();
-    map.put("message", message);
-    map.put("sender", message.getSender());
-    map.put("recipient", recipient);
-
-    map.put("persistentMessageRecipient", persistentMessageRecipient);
-    map.put("persistentMessageSender", persistentMessageSender);
-    map.put("persistentUser", persistentUser);
-    map.put("persistentMessage", persistentMessage);
-    map.put("persistentUserMessage", persistentUserMessage);
-
-    return Response.ok().entity(map).build();
+    PersistentUserMessageExtract pume = buildUserMessageExtract(c, persistentUserMessage);
+    return Response.ok().entity(pume).build();
   }
 
   @PATCH

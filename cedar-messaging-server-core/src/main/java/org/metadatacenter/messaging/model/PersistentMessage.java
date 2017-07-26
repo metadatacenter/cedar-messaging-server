@@ -1,11 +1,13 @@
 package org.metadatacenter.messaging.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 @Entity
@@ -28,9 +30,9 @@ public class PersistentMessage {
   @Lob
   private String body;
 
-  private LocalDateTime creationDate;
+  private ZonedDateTime creationDate;
 
-  private LocalDateTime expirationDate;
+  private ZonedDateTime expirationDate;
 
   @ManyToOne(optional = false, fetch = FetchType.LAZY)
   @Fetch(FetchMode.JOIN)
@@ -86,19 +88,19 @@ public class PersistentMessage {
     this.body = body;
   }
 
-  public LocalDateTime getCreationDate() {
+  public ZonedDateTime getCreationDate() {
     return creationDate;
   }
 
-  public void setCreationDate(LocalDateTime creationDate) {
+  public void setCreationDate(ZonedDateTime creationDate) {
     this.creationDate = creationDate;
   }
 
-  public LocalDateTime getExpirationDate() {
+  public ZonedDateTime getExpirationDate() {
     return expirationDate;
   }
 
-  public void setExpirationDate(LocalDateTime expirationDate) {
+  public void setExpirationDate(ZonedDateTime expirationDate) {
     this.expirationDate = expirationDate;
   }
 

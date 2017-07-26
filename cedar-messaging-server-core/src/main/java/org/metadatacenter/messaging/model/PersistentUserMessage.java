@@ -13,6 +13,8 @@ public class PersistentUserMessage {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
+  private String cid;
+
   @ManyToOne(optional = false, fetch = FetchType.LAZY)
   @Fetch(FetchMode.JOIN)
   @JoinColumn(name = "user_message_user",
@@ -44,6 +46,14 @@ public class PersistentUserMessage {
 
   public void setId(Long id) {
     this.id = id;
+  }
+
+  public String getCid() {
+    return cid;
+  }
+
+  public void setCid(String cid) {
+    this.cid = cid;
   }
 
   public PersistentUser getUser() {
