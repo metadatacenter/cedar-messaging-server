@@ -11,11 +11,13 @@ import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.messaging.dao.*;
 import org.metadatacenter.messaging.model.*;
 import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.rest.assertion.noun.CedarParameter;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.security.model.user.CedarUser;
 import org.metadatacenter.server.security.model.user.CedarUserSummary;
+import org.metadatacenter.util.CedarNodeTypeUtil;
 import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.json.JsonMapper;
 import org.slf4j.Logger;
@@ -25,12 +27,12 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
+import static org.metadatacenter.constant.CedarQueryParameters.QP_FORMAT;
+import static org.metadatacenter.constant.CedarQueryParameters.QP_NOTIFICATION_STATUS;
+import static org.metadatacenter.constant.HttpConstants.CONTENT_TYPE_APPLICATION_MERGE_PATCH_JSON;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 
 @Path("/messages")
@@ -58,9 +60,22 @@ public class MessagesResource extends AbstractMessagingResource {
   @GET
   @Timed
   @UnitOfWork
-  public Response getMessages() throws CedarException {
+  public Response getMessages(@QueryParam(QP_NOTIFICATION_STATUS) Optional<String> notificationStatus) throws
+      CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
+
+    PersistentUserMessageNotificationStatus notificationStatusEnum = null;
+    if (notificationStatus.isPresent()) {
+      notificationStatusEnum = PersistentUserMessageNotificationStatus.forValue(notificationStatus.get());
+      if (notificationStatusEnum == null) {
+        return CedarResponse.badRequest().errorMessage("The " + QP_NOTIFICATION_STATUS + " value is invalid.")
+            .parameter("notificationStatus", notificationStatus)
+            .parameter("validNotificationStatus", PersistentUserMessageNotificationStatus.values())
+
+            .build();
+      }
+    }
 
     String currentUserId = c.getCedarUser().getId();
 
@@ -69,7 +84,7 @@ public class MessagesResource extends AbstractMessagingResource {
     map.put("unread", userDAO.getUnreadCountForUser(currentUserId));
     map.put("notnotified", userDAO.getNotNotifiedCountForUser(currentUserId));
 
-    List<PersistentUserMessage> list = messageDAO.listForUser(currentUserId);
+    List<PersistentUserMessage> list = messageDAO.listForUser(currentUserId, notificationStatusEnum);
 
     List<PersistentUserMessageExtract> messages = new ArrayList<>();
 
@@ -214,15 +229,42 @@ public class MessagesResource extends AbstractMessagingResource {
   @Timed
   @UnitOfWork
   @Path("/{id}")
+  @Consumes(CONTENT_TYPE_APPLICATION_MERGE_PATCH_JSON)
   public Response patchMessage(@PathParam(PP_ID) String id) throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
 
-    Map<String, Object> map = new HashMap<>();
-    map.put("messageId", 12345);
-    map.put("status", "read");
+    PersistentUserMessage pum = userMessageDAO.findByCid(id);
+    if (pum == null) {
+      return CedarResponse.notFound().errorMessage("User message not found by id")
+          .parameter("id", id)
+          .build();
+    }
 
-    return Response.ok().entity(map).build();
+    if (!c.getCedarUser().getId().equals(pum.getUser().getCid())) {
+      return CedarResponse.unauthorized().errorMessage("You do not have permission to modify this user message")
+          .build();
+    }
+
+    CedarParameter notificationStatus = c.request().getRequestBody().get("notificationStatus");
+
+    String notificationStatusV = null;
+    if (!notificationStatus.isEmpty()) {
+      notificationStatusV = notificationStatus.stringValue();
+      notificationStatusV = notificationStatusV.trim();
+    }
+
+    PersistentUserMessageNotificationStatus ns = PersistentUserMessageNotificationStatus.forValue(notificationStatusV);
+    if (ns == null) {
+      return CedarResponse.badRequest().errorMessage("Invalid notificationStatus").build();
+    }
+
+    pum.setNotificationStatus(ns);
+
+    pum = userMessageDAO.update(pum);
+
+    PersistentUserMessageExtract message = buildUserMessageExtract(c, pum);
+    return Response.ok().entity(message).build();
   }
 
 }
