@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum PersistentMessageSenderProcessId {
 
   NONE(null),
+  SUBMISSION_IMMPORT("submission.IMMPORT"),
   SUBMISSION_AIRR("submission.AIRR");
 
   private final String value;
