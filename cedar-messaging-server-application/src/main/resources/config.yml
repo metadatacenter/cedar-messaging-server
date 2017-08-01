@@ -10,7 +10,9 @@ logging:
     org.metadatacenter.server.neo4j.proxy.AbstractNeo4JProxy: INFO
     org.metadatacenter.server.search.elasticsearch: INFO
     org.metadatacenter.server.search.permission: INFO
-    org.hibernate.engine.internal.StatisticalLoggingSessionEventListener: FATAL
+    org.hibernate.engine.internal.StatisticalLoggingSessionEventListener: ERROR
+    org.hibernate.SQL: ERROR
+    org.hibernate.type.descriptor.sql: ERROR
   appenders:
     - type: console
       threshold: ALL

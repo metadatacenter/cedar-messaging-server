@@ -80,11 +80,11 @@ public class MessagesResource extends AbstractMessagingResource {
     String currentUserId = c.getCedarUser().getId();
 
     Map<String, Object> map = new HashMap<>();
-    map.put("total", userDAO.getTotalCountForUser(currentUserId));
-    map.put("unread", userDAO.getUnreadCountForUser(currentUserId));
-    map.put("notnotified", userDAO.getNotNotifiedCountForUser(currentUserId));
+    map.put("total", userMessageDAO.getTotalCountForUser(currentUserId));
+    map.put("unread", userMessageDAO.getUnreadCountForUser(currentUserId));
+    map.put("notnotified", userMessageDAO.getNotNotifiedCountForUser(currentUserId));
 
-    List<PersistentUserMessage> list = messageDAO.listForUser(currentUserId, notificationStatusEnum);
+    List<PersistentUserMessage> list = userMessageDAO.listForUser(currentUserId, notificationStatusEnum);
 
     List<PersistentUserMessageExtract> messages = new ArrayList<>();
 

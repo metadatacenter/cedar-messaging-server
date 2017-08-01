@@ -4,40 +4,15 @@ import io.dropwizard.hibernate.AbstractDAO;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.metadatacenter.messaging.model.PersistentUser;
-import org.metadatacenter.messaging.model.PersistentUserMessage;
-import org.metadatacenter.messaging.model.PersistentUserMessageNotificationStatus;
-import org.metadatacenter.messaging.model.PersistentUserMessageReadStatus;
 
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
 public class PersistentUserDAO extends AbstractDAO<PersistentUser> {
 
   public PersistentUserDAO(SessionFactory factory) {
     super(factory);
-  }
-
-  public long getTotalCountForUser(String id) {
-    CriteriaBuilder builder = currentSession().getCriteriaBuilder();
-    CriteriaQuery<Long> countCriteria = builder.createQuery(Long.class);
-    Root<PersistentUserMessage> countRoot = countCriteria.from(PersistentUserMessage.class);
-    Join<PersistentUserMessage, PersistentUser> userJoin = countRoot.join("user", JoinType.INNER);
-    countCriteria.where(builder.equal(userJoin.get("cid"), id));
-    countCriteria.select(builder.count(countRoot));
-    Query<Long> q = currentSession().createQuery(countCriteria);
-    return q.uniqueResult();
-  }
-
-  public long getUnreadCountForUser(String id) {
-    CriteriaBuilder builder = currentSession().getCriteriaBuilder();
-    CriteriaQuery<Long> countCriteria = builder.createQuery(Long.class);
-    Root<PersistentUserMessage> countRoot = countCriteria.from(PersistentUserMessage.class);
-    Join<PersistentUserMessage, PersistentUser> userJoin = countRoot.join("user", JoinType.INNER);
-    countCriteria.where(builder.and(
-        builder.equal(userJoin.get("cid"), id)),
-        builder.equal(countRoot.get("readStatus"), PersistentUserMessageReadStatus.UNREAD));
-    countCriteria.select(builder.count(countRoot));
-    Query<Long> q = currentSession().createQuery(countCriteria);
-    return q.uniqueResult();
   }
 
   public Long create(PersistentUser persistentRecipientUser) {
@@ -51,19 +26,6 @@ public class PersistentUserDAO extends AbstractDAO<PersistentUser> {
     query.select(root);
     query.where(builder.equal(root.get("cid"), id));
     Query<PersistentUser> q = currentSession().createQuery(query);
-    return q.uniqueResult();
-  }
-
-  public Long getNotNotifiedCountForUser(String id) {
-    CriteriaBuilder builder = currentSession().getCriteriaBuilder();
-    CriteriaQuery<Long> countCriteria = builder.createQuery(Long.class);
-    Root<PersistentUserMessage> countRoot = countCriteria.from(PersistentUserMessage.class);
-    Join<PersistentUserMessage, PersistentUser> userJoin = countRoot.join("user", JoinType.INNER);
-    countCriteria.where(builder.and(
-        builder.equal(userJoin.get("cid"), id)),
-        builder.equal(countRoot.get("notificationStatus"), PersistentUserMessageNotificationStatus.NOTNOTIFIED));
-    countCriteria.select(builder.count(countRoot));
-    Query<Long> q = currentSession().createQuery(countCriteria);
     return q.uniqueResult();
   }
 }
