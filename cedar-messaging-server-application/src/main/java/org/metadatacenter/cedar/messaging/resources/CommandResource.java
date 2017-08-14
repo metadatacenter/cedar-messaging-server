@@ -10,7 +10,7 @@ import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -20,30 +20,35 @@ import java.util.Map;
 
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 
-@Path("/summary")
+@Path("/command")
 @Produces(MediaType.APPLICATION_JSON)
-public class SummaryResource extends AbstractMessagingResource {
+public class CommandResource extends AbstractMessagingResource {
 
-  private static final Logger log = LoggerFactory.getLogger(SummaryResource.class);
+  private static final Logger log = LoggerFactory.getLogger(CommandResource.class);
+
+  protected static final String MARK_ALL_AS_READ_COMMAND = "mark-all-as-read";
+
   private final PersistentUserMessageDAO userMessageDAO;
 
-  public SummaryResource(CedarConfig cedarConfig, PersistentUserMessageDAO userMessageDAO) {
+  public CommandResource(CedarConfig cedarConfig, PersistentUserMessageDAO userMessageDAO) {
     super(cedarConfig);
     this.userMessageDAO = userMessageDAO;
   }
 
-  @GET
+  @POST
   @Timed
   @UnitOfWork
-  public Response getSummary() throws CedarException {
+  @Path("/" + MARK_ALL_AS_READ_COMMAND)
+  public Response markAllAsRead() throws CedarException {
     CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
     c.must(c.user()).be(LoggedIn);
 
-    Map<String, Object> map = new HashMap<>();
-    map.put("total", userMessageDAO.getTotalCountForUser(c.getCedarUser().getId()));
-    map.put("unread", userMessageDAO.getUnreadCountForUser(c.getCedarUser().getId()));
-    map.put("notnotified", userMessageDAO.getNotNotifiedCountForUser(c.getCedarUser().getId()));
+    int updated = userMessageDAO.markAllAsRead(c.getCedarUser().getId());
 
+    Map<String, Object> map = new HashMap<>();
+    map.put("updated", updated);
     return Response.ok().entity(map).build();
   }
+
+
 }
