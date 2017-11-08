@@ -22,7 +22,6 @@
     <connection>scm:git:git@github.com:metadatacenter/cedar-messaging-server.git</connection>
     <developerConnection>scm:git:git@github.com:metadatacenter/cedar-messaging-server.git</developerConnection>
     <url>https://github.com/metadatacenter/cedar-messaging-server</url>
-    <tag>HEAD</tag>
   </scm>
 
   <modules>
