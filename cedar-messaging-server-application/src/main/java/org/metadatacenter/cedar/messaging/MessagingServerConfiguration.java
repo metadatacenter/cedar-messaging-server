@@ -5,11 +5,9 @@ import io.dropwizard.db.DataSourceFactory;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceConfiguration;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 public class MessagingServerConfiguration extends CedarMicroserviceConfiguration {
 
-  @NotNull
   @Valid
   private DataSourceFactory database = new DataSourceFactory();
 
