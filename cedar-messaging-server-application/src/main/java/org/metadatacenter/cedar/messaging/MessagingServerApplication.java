@@ -13,6 +13,7 @@ import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.messaging.dao.*;
 import org.metadatacenter.messaging.model.*;
 import org.metadatacenter.model.ServerName;
+import org.metadatacenter.server.cache.user.UserSummaryCache;
 
 public class MessagingServerApplication extends CedarMicroserviceApplication<MessagingServerConfiguration> {
 
@@ -52,6 +53,9 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
 
   @Override
   public void initializeApp() {
+
+    UserSummaryCache.init(cedarConfig, userService);
+
     userDAO = new PersistentUserDAO(hibernate.getSessionFactory());
     messageDAO = new PersistentMessageDAO(hibernate.getSessionFactory());
     userMessageDAO = new PersistentUserMessageDAO(hibernate.getSessionFactory());

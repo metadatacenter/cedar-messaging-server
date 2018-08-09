@@ -14,10 +14,10 @@ import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.rest.assertion.noun.CedarParameter;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.rest.context.CedarRequestContextFactory;
+import org.metadatacenter.server.cache.user.UserSummaryCache;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.security.model.user.CedarUser;
 import org.metadatacenter.server.security.model.user.CedarUserSummary;
-import org.metadatacenter.util.CedarNodeTypeUtil;
 import org.metadatacenter.util.http.CedarResponse;
 import org.metadatacenter.util.json.JsonMapper;
 import org.slf4j.Logger;
@@ -30,7 +30,6 @@ import java.time.ZonedDateTime;
 import java.util.*;
 
 import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
-import static org.metadatacenter.constant.CedarQueryParameters.QP_FORMAT;
 import static org.metadatacenter.constant.CedarQueryParameters.QP_NOTIFICATION_STATUS;
 import static org.metadatacenter.constant.HttpConstants.CONTENT_TYPE_APPLICATION_MERGE_PATCH_JSON;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
@@ -101,7 +100,7 @@ public class MessagesResource extends AbstractMessagingResource {
       throws CedarProcessingException {
     String screenName = null;
     if (pum.getMessage().getSender().getSenderType() == PersistentMessageSenderType.USER) {
-      CedarUserSummary userSummary = getUserSummary(pum.getMessage().getSender().getCid(), c);
+      CedarUserSummary userSummary = UserSummaryCache.getInstance().getUser(pum.getMessage().getSender().getCid());
       screenName = userSummary.getScreenName();
     }
     return new PersistentUserMessageExtract(pum, screenName);
@@ -139,7 +138,7 @@ public class MessagesResource extends AbstractMessagingResource {
     }
 
     String recipientCid = recipientInQuery.getCid();
-    recipient = getUserSummary(recipientCid, c);
+    recipient = UserSummaryCache.getInstance().getUser(recipientCid);
     if (recipient == null) {
       return CedarResponse.notFound().errorMessage("The specified recipient can not be found").build();
     }
@@ -155,7 +154,7 @@ public class MessagesResource extends AbstractMessagingResource {
     PersistentMessageSender persistentMessageSender = null;
     // Sender is not specified, it is the current user
     if (message.getSender() == null) {
-      CedarUserSummary senderSummary = getUserSummary(c.getCedarUser().getId(), c);
+      CedarUserSummary senderSummary = UserSummaryCache.getInstance().getUser(c.getCedarUser().getId());
       persistentMessageSender = messageSenderDAO.findByCid(senderSummary.getId());
       if (persistentMessageSender == null) {
         persistentMessageSender = new PersistentMessageSender();
