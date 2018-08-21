@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.metadatacenter</groupId>
     <artifactId>cedar-messaging-server</artifactId>
-    <version>1.9.1</version>
+    <version>1.9.2</version>
   </parent>
 
   <groupId>org.metadatacenter</groupId>
@@ -24,6 +24,11 @@
     <dependency>
       <groupId>org.metadatacenter</groupId>
       <artifactId>cedar-server-rest</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.metadatacenter</groupId>
+      <artifactId>cedar-cache-operations</artifactId>
     </dependency>
 
     <dependency>
