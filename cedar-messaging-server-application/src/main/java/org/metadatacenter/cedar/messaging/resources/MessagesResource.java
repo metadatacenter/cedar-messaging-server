@@ -96,8 +96,7 @@ public class MessagesResource extends AbstractMessagingResource {
     return Response.ok().entity(map).build();
   }
 
-  private PersistentUserMessageExtract buildUserMessageExtract(CedarRequestContext c, PersistentUserMessage pum)
-      throws CedarProcessingException {
+  private PersistentUserMessageExtract buildUserMessageExtract(CedarRequestContext c, PersistentUserMessage pum) {
     String screenName = null;
     if (pum.getMessage().getSender().getSenderType() == PersistentMessageSenderType.USER) {
       CedarUserSummary userSummary = UserSummaryCache.getInstance().getUser(pum.getMessage().getSender().getCid());
