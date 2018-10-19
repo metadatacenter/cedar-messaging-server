@@ -34,6 +34,9 @@ public class CedarConfigMessagingTest {
     CedarEnvironmentUtil.copy(CedarEnvironmentVariable.CEDAR_MESSAGING_MYSQL_USER, env);
     CedarEnvironmentUtil.copy(CedarEnvironmentVariable.CEDAR_MESSAGING_MYSQL_PASSWORD, env);
 
+    env.put(CedarEnvironmentVariable.CEDAR_REDIS_PERSISTENT_HOST.getName(), "127.0.0.1");
+    env.put(CedarEnvironmentVariable.CEDAR_REDIS_PERSISTENT_PORT.getName(), "6379");
+
     env.put(CedarEnvironmentVariable.CEDAR_MESSAGING_HTTP_PORT.getName(), "9011");
     env.put(CedarEnvironmentVariable.CEDAR_MESSAGING_ADMIN_PORT.getName(), "9111");
     env.put(CedarEnvironmentVariable.CEDAR_MESSAGING_STOP_PORT.getName(), "9211");
