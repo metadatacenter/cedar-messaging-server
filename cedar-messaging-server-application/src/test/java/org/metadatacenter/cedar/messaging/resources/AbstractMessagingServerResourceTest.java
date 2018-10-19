@@ -13,8 +13,6 @@ import org.metadatacenter.cedar.messaging.MessagingServerConfiguration;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.config.environment.CedarEnvironmentVariableProvider;
 import org.metadatacenter.model.SystemComponent;
-import org.metadatacenter.server.security.CedarApiKeyAuthRequest;
-import org.metadatacenter.server.security.model.AuthRequest;
 import org.metadatacenter.util.test.TestUserUtil;
 
 import javax.ws.rs.client.Client;
