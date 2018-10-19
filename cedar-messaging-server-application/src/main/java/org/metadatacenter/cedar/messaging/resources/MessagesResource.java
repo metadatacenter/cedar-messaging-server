@@ -13,7 +13,6 @@ import org.metadatacenter.messaging.model.*;
 import org.metadatacenter.model.CedarNodeType;
 import org.metadatacenter.rest.assertion.noun.CedarParameter;
 import org.metadatacenter.rest.context.CedarRequestContext;
-import org.metadatacenter.rest.context.CedarRequestContextFactory;
 import org.metadatacenter.server.cache.user.UserSummaryCache;
 import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.security.model.user.CedarUser;
@@ -61,7 +60,7 @@ public class MessagesResource extends AbstractMessagingResource {
   @UnitOfWork
   public Response getMessages(@QueryParam(QP_NOTIFICATION_STATUS) Optional<String> notificationStatus) throws
       CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
 
     PersistentUserMessageNotificationStatus notificationStatusEnum = null;
@@ -109,7 +108,7 @@ public class MessagesResource extends AbstractMessagingResource {
   @Timed
   @UnitOfWork
   public Response postMessage() throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
 
     PersistentMessageRequest message = null;
@@ -229,7 +228,7 @@ public class MessagesResource extends AbstractMessagingResource {
   @Path("/{id}")
   @Consumes(CONTENT_TYPE_APPLICATION_MERGE_PATCH_JSON)
   public Response patchMessage(@PathParam(PP_ID) String id) throws CedarException {
-    CedarRequestContext c = CedarRequestContextFactory.fromRequest(request);
+    CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
 
     PersistentUserMessage pum = userMessageDAO.findByCid(id);
