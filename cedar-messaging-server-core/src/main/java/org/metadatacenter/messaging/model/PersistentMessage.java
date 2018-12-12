@@ -53,6 +53,9 @@ public class PersistentMessage {
   )
   private PersistentMessageRecipient recipient;
 
+  public PersistentMessage() {
+  }
+
   public void setId(Long id) {
     this.id = id;
   }

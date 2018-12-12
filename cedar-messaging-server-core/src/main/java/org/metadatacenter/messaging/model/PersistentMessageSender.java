@@ -23,6 +23,9 @@ public class PersistentMessageSender {
   @Enumerated(EnumType.STRING)
   private PersistentMessageSenderProcessId processId;
 
+  public PersistentMessageSender() {
+  }
+
   public Long getId() {
     return id;
   }
