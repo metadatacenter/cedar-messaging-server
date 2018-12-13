@@ -43,6 +43,9 @@ public class PersistentUserMessage {
   @Enumerated(EnumType.STRING)
   private PersistentUserMessageNotificationStatus notificationStatus;
 
+  public PersistentUserMessage() {
+  }
+
   public Long getId() {
     return id;
   }

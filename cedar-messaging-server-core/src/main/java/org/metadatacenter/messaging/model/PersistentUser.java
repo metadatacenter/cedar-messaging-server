@@ -15,6 +15,9 @@ public class PersistentUser {
 
   private String cid;
 
+  public PersistentUser() {
+  }
+
   public Long getId() {
     return id;
   }

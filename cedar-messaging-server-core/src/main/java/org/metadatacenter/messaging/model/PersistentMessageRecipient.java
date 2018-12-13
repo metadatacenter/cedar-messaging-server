@@ -20,6 +20,9 @@ public class PersistentMessageRecipient {
   @Enumerated(EnumType.STRING)
   private PersistentMessageRecipientType recipientType;
 
+  public PersistentMessageRecipient() {
+  }
+
   public Long getId() {
     return id;
   }
