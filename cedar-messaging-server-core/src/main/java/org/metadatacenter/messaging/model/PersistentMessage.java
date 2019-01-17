@@ -11,8 +11,8 @@ import java.time.ZonedDateTime;
 @Table(name = "message",
     uniqueConstraints = @UniqueConstraint(columnNames = {"cid"}, name = "UK_message_cid"),
     indexes = {
-        @Index(columnList = "creationDate", name = "IDX_creationDate"),
-        @Index(columnList = "expirationDate", name = "IDX_expirationDate")
+        @Index(columnList = "creationDate", name = "IDX_message_creationDate"),
+        @Index(columnList = "expirationDate", name = "IDX_message_expirationDate")
     }
 )
 public class PersistentMessage {

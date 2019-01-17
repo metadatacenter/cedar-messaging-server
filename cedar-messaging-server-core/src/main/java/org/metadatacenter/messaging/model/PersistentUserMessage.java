@@ -8,9 +8,9 @@ import javax.persistence.*;
 @Entity
 @Table(name = "user_message",
     indexes = {
-        @Index(columnList = "cid", name = "IDX_cid"),
-        @Index(columnList = "readStatus", name = "IDX_readStatus"),
-        @Index(columnList = "notificationStatus", name = "IDX_notificationStatus"),
+        @Index(columnList = "cid", name = "IDX_user_message_cid"),
+        @Index(columnList = "readStatus", name = "IDX_user_message_readStatus"),
+        @Index(columnList = "notificationStatus", name = "IDX_user_message_notificationStatus"),
     })
 public class PersistentUserMessage {
 
