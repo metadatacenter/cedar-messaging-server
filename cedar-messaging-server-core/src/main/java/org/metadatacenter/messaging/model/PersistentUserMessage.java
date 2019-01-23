@@ -6,7 +6,12 @@ import org.hibernate.annotations.FetchMode;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "user_message")
+@Table(name = "user_message",
+    indexes = {
+        @Index(columnList = "cid", name = "IDX_user_message_cid"),
+        @Index(columnList = "readStatus", name = "IDX_user_message_readStatus"),
+        @Index(columnList = "notificationStatus", name = "IDX_user_message_notificationStatus"),
+    })
 public class PersistentUserMessage {
 
   @Id

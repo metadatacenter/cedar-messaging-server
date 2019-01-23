@@ -5,12 +5,12 @@
   <parent>
     <groupId>org.metadatacenter</groupId>
     <artifactId>cedar-parent</artifactId>
-    <version>2.2.3</version>
+    <version>2.2.5</version>
   </parent>
 
   <groupId>org.metadatacenter</groupId>
   <artifactId>cedar-messaging-server</artifactId>
-  <version>2.2.3</version>
+  <version>2.2.5</version>
   <packaging>pom</packaging>
 
 
@@ -22,12 +22,23 @@
     <connection>scm:git:git@github.com:metadatacenter/cedar-messaging-server.git</connection>
     <developerConnection>scm:git:git@github.com:metadatacenter/cedar-messaging-server.git</developerConnection>
     <url>https://github.com/metadatacenter/cedar-messaging-server</url>
-    <tag>release-2.2.3</tag>
+    <tag>release-2.2.5</tag>
   </scm>
 
   <modules>
     <module>cedar-messaging-server-core</module>
     <module>cedar-messaging-server-application</module>
   </modules>
+
+  <build>
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+      </plugin>
+
+    </plugins>
+  </build>
 
 </project>
