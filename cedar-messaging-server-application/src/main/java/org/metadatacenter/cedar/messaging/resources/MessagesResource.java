@@ -10,7 +10,7 @@ import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.messaging.dao.*;
 import org.metadatacenter.messaging.model.*;
-import org.metadatacenter.model.CedarNodeType;
+import org.metadatacenter.model.CedarResourceType;
 import org.metadatacenter.rest.assertion.noun.CedarParameter;
 import org.metadatacenter.rest.context.CedarRequestContext;
 import org.metadatacenter.server.cache.user.UserSummaryCache;
@@ -183,7 +183,7 @@ public class MessagesResource extends AbstractMessagingResource {
           persistentMessageSender = new PersistentMessageSender();
           persistentMessageSender.setSenderType(PersistentMessageSenderType.PROCESS);
           persistentMessageSender.setProcessId(processId);
-          String newSenderProcessId = linkedDataUtil.buildNewLinkedDataId(CedarNodeType.PROCESS);
+          String newSenderProcessId = linkedDataUtil.buildNewLinkedDataId(CedarResourceType.PROCESS);
           persistentMessageSender.setCid(newSenderProcessId);
           messageSenderDAO.create(persistentMessageSender);
         }
@@ -197,7 +197,7 @@ public class MessagesResource extends AbstractMessagingResource {
       userDAO.create(persistentUser);
     }
 
-    String newMessageId = linkedDataUtil.buildNewLinkedDataId(CedarNodeType.MESSAGE);
+    String newMessageId = linkedDataUtil.buildNewLinkedDataId(CedarResourceType.MESSAGE);
     PersistentMessage persistentMessage = new PersistentMessage();
     persistentMessage.setSubject(message.getSubject());
     persistentMessage.setBody(message.getBody());
@@ -207,7 +207,7 @@ public class MessagesResource extends AbstractMessagingResource {
     persistentMessage.setSender(persistentMessageSender);
     persistentMessage.setRecipient(persistentMessageRecipient);
 
-    String newUserMessageId = linkedDataUtil.buildNewLinkedDataId(CedarNodeType.USERMESSAGE);
+    String newUserMessageId = linkedDataUtil.buildNewLinkedDataId(CedarResourceType.USERMESSAGE);
     PersistentUserMessage persistentUserMessage = new PersistentUserMessage();
     persistentUserMessage.setCid(newUserMessageId);
     persistentUserMessage.setMessage(persistentMessage);
