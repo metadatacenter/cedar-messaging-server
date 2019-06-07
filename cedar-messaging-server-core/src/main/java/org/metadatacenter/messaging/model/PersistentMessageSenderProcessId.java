@@ -7,7 +7,7 @@ public enum PersistentMessageSenderProcessId {
 
   NONE(null),
   SUBMISSION_IMMPORT("submission.IMMPORT"),
-  SUBMISSION_AIRR("submission.AIRR");
+  SUBMISSION_NCBI("submission.NCBI");
 
   private final String value;
 
@@ -22,9 +22,9 @@ public enum PersistentMessageSenderProcessId {
 
   @JsonCreator
   public static PersistentMessageSenderProcessId forValue(String value) {
-   if (value == null) {
-     return NONE;
-   }
+    if (value == null) {
+      return NONE;
+    }
     for (PersistentMessageSenderProcessId t : values()) {
       if (value.equals(t.getValue())) {
         return t;
