@@ -92,7 +92,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
 
     Map<String, Object> from = new HashMap<>();
     from.put("senderType", PersistentMessageSenderType.PROCESS.getValue());
-    from.put("processId", PersistentMessageSenderProcessId.SUBMISSION_AIRR.getValue());
+    from.put("processId", PersistentMessageSenderProcessId.SUBMISSION_NCBI.getValue());
     content.put("from", from);
 
     System.out.println(JsonMapper.MAPPER.valueToTree(content));
