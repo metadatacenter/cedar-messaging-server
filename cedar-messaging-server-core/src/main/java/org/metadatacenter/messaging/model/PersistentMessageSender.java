@@ -1,6 +1,7 @@
 package org.metadatacenter.messaging.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.metadatacenter.constant.LinkedData;
 
 import javax.persistence.*;
 
@@ -14,7 +15,7 @@ public class PersistentMessageSender {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @JsonProperty("@id")
+  @JsonProperty(LinkedData.ID)
   private String cid;
 
   @Enumerated(EnumType.STRING)
