@@ -10,12 +10,12 @@
 
   <groupId>org.metadatacenter</groupId>
   <artifactId>cedar-messaging-server</artifactId>
+  <version>2.5.37-SNAPSHOT</version>
   <packaging>pom</packaging>
 
 
   <name>CEDAR Messaging Server</name>
-  <description>CEDAR server for messaging
-  </description>
+  <description>CEDAR server for messaging</description>
 
   <scm>
     <connection>scm:git:https://github.com/metadatacenter/cedar-messaging-server.git</connection>
