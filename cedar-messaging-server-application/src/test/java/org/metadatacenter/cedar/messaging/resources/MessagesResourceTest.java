@@ -48,7 +48,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     Response response = client.target(url).request().header("Authorization", authHeader1).post(postContent);
     Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
     Assert.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
-    Map<String, Object> summary = response.readEntity(new GenericType<Map<String, Object>>() {
+    Map<String, Object> summary = response.readEntity(new GenericType<>() {
     });
     System.out.println(JsonMapper.MAPPER.valueToTree(summary));
   }
@@ -72,7 +72,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     Response response = client.target(url).request().header("Authorization", authHeaderAdmin).post(postContent);
     Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
     Assert.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
-    Map<String, Object> summary = response.readEntity(new GenericType<Map<String, Object>>() {
+    Map<String, Object> summary = response.readEntity(new GenericType<>() {
     });
     System.out.println(JsonMapper.MAPPER.valueToTree(summary));
   }
@@ -101,7 +101,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     Response response = client.target(url).request().header("Authorization", authHeaderAdmin).post(postContent);
     Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
     Assert.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
-    Map<String, Object> summary = response.readEntity(new GenericType<Map<String, Object>>() {
+    Map<String, Object> summary = response.readEntity(new GenericType<>() {
     });
     System.out.println(JsonMapper.MAPPER.valueToTree(summary));
   }
