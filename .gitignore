@@ -14,6 +14,7 @@ dist
 */RUNNING_PID
 .settings
 keycloak.json
+.DS_Store
 
 pom.xml.releaseBackup
 release.properties
