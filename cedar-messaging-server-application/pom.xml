@@ -76,6 +76,18 @@
       <artifactId>dropwizard-testing</artifactId>
     </dependency>
 
+    <!--
+      In-process MariaDB for backend-free integration tests; MySQL-compatible, and the schema is
+      created by Hibernate (hbm2ddl auto-update). The platform-specific database binaries come
+      from the OS-activated profiles below.
+    -->
+    <dependency>
+      <groupId>ch.vorburger.mariaDB4j</groupId>
+      <artifactId>mariaDB4j</artifactId>
+      <version>3.2.0</version>
+      <scope>test</scope>
+    </dependency>
+
     <dependency>
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-client</artifactId>
@@ -163,6 +175,23 @@
 
     <plugins>
 
+      <!--
+        TestUtil.setEnv redirects the CEDAR MySQL and Redis environment variables at the
+        in-process test servers via reflection into java.base internals, which JDK 17+ blocks
+        without these opens. Each test class runs in its own JVM (reuseForks false): CedarConfig
+        is a singleton built from the environment on first use, so the redirection must happen
+        before any other test class builds it.
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED</argLine>
+          <reuseForks>false</reuseForks>
+        </configuration>
+      </plugin>
+
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -200,5 +229,59 @@
     </plugins>
 
   </build>
+
+
+  <profiles>
+    <profile>
+      <id>embedded-mariadb-mac-arm64</id>
+      <activation>
+        <os>
+          <family>mac</family>
+          <arch>aarch64</arch>
+        </os>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>ch.vorburger.mariaDB4j</groupId>
+          <artifactId>mariaDB4j-db-macos-arm64</artifactId>
+          <version>11.4.5</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>embedded-mariadb-linux64</id>
+      <activation>
+        <os>
+          <name>Linux</name>
+          <arch>amd64</arch>
+        </os>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>ch.vorburger.mariaDB4j</groupId>
+          <artifactId>mariaDB4j-db-linux64</artifactId>
+          <version>11.4.5</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>embedded-mariadb-winx64</id>
+      <activation>
+        <os>
+          <family>windows</family>
+        </os>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>ch.vorburger.mariaDB4j</groupId>
+          <artifactId>mariaDB4j-db-winx64</artifactId>
+          <version>11.4.5</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
 </project>

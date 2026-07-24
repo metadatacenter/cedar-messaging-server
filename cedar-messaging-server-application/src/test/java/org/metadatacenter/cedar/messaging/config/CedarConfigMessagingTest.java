@@ -52,6 +52,8 @@ public class CedarConfigMessagingTest {
     CedarEnvironmentUtil.copy(CedarEnvironmentVariable.CEDAR_TEST_USER1_ID, env);
     CedarEnvironmentUtil.copy(CedarEnvironmentVariable.CEDAR_TEST_USER2_ID, env);
 
+    env.put(CedarEnvironmentVariable.CEDAR_USER_SERVER_HOST.getName(), "127.0.0.1");
+
     TestUtil.setEnv(env);
   }
 
