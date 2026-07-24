@@ -30,7 +30,6 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
   }
 
   @Test
-  @Ignore
   public void sendFromUser1ToUser2() {
     String url = baseUrlMessages;
     Map<String, Object> content = new HashMap<>();
@@ -54,7 +53,6 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
   }
 
   @Test
-  @Ignore
   public void sendFromCedarAdminToUser1() {
     String url = baseUrlMessages;
     Map<String, Object> content = new HashMap<>();
@@ -78,7 +76,6 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
   }
 
   @Test
-  @Ignore
   public void sendFromProcessToUser2() {
     String url = baseUrlMessages;
     Map<String, Object> content = new HashMap<>();

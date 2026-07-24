@@ -5,6 +5,11 @@ server:
   adminConnectors:
   - type: http
     port: 3433
+# The Dropwizard-managed database block only has to satisfy configuration validation; the real
+# MySQL connection is built from the CEDAR environment, as in the production config.yml
+database:
+  driverClass: foo
+  url: bar
 logging:
   level: INFO
   loggers:

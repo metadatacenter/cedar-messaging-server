@@ -13,6 +13,9 @@ import org.metadatacenter.cedar.messaging.MessagingServerConfiguration;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.config.environment.CedarEnvironmentVariableProvider;
 import org.metadatacenter.model.SystemComponent;
+import org.metadatacenter.server.cache.user.UserSummaryCache;
+import org.metadatacenter.server.security.model.user.CedarUser;
+import org.metadatacenter.server.security.model.user.CedarUserSummary;
 import org.metadatacenter.util.test.TestAuthUtil;
 
 import javax.ws.rs.client.Client;
@@ -57,6 +60,19 @@ public abstract class AbstractMessagingServerResourceTest {
     authHeader1 = TestAuthUtil.getTestUser1AuthHeader(cedarConfig);
     authHeader2 = TestAuthUtil.getTestUser2AuthHeader(cedarConfig);
     authHeaderAdmin = TestAuthUtil.getAdminUserAuthHeader(cedarConfig);
+
+    // Seed the user summary cache with the test users, so recipient resolution never falls
+    // through to the user server
+    seedUserSummary(TestAuthUtil.getTestUser1(cedarConfig));
+    seedUserSummary(TestAuthUtil.getTestUser2(cedarConfig));
+    seedUserSummary(TestAuthUtil.getAdminUser(cedarConfig));
+  }
+
+  private static void seedUserSummary(CedarUser user) {
+    CedarUserSummary summary = new CedarUserSummary();
+    summary.setId(user.getId());
+    summary.setScreenName(user.getFirstName() + " " + user.getLastName());
+    UserSummaryCache.getInstance().put(summary);
   }
 
   @Before
