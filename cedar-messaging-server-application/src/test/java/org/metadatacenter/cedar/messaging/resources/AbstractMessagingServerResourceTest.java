@@ -3,7 +3,7 @@ package org.metadatacenter.cedar.messaging.resources;
 import io.dropwizard.client.JerseyClientBuilder;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit.DropwizardAppRule;
-import org.metadatacenter.cedar.messaging.EmbeddedCedarMySql;
+import org.metadatacenter.util.test.EmbeddedCedarMySql;
 import org.glassfish.jersey.client.ClientProperties;
 import org.junit.After;
 import org.junit.Before;
@@ -28,7 +28,7 @@ public abstract class AbstractMessagingServerResourceTest {
     // Must run before the application rule boots the server, which reads the MySQL env vars.
     // The message store comes from an in-process MariaDB; Redis is redirected to a dead port,
     // since queue writes are best-effort - the suite needs no live backend at all.
-    EmbeddedCedarMySql.startAndRedirectEnvironment(Map.of("CEDAR_REDIS_PERSISTENT_PORT", "1"));
+    EmbeddedCedarMySql.startAndRedirectEnvironment("CEDAR_MESSAGING_MYSQL", Map.of("CEDAR_REDIS_PERSISTENT_PORT", "1"));
   }
 
   protected static CedarConfig cedarConfig;

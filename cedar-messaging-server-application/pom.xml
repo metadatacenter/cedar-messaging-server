@@ -77,14 +77,12 @@
     </dependency>
 
     <!--
-      In-process MariaDB for backend-free integration tests; MySQL-compatible, and the schema is
-      created by Hibernate (hbm2ddl auto-update). The platform-specific database binaries come
-      from the OS-activated profiles below.
+      In-process MariaDB and its helper come from the test support library; the OS-activated
+      profiles below supply the platform database binaries.
     -->
     <dependency>
-      <groupId>ch.vorburger.mariaDB4j</groupId>
-      <artifactId>mariaDB4j</artifactId>
-      <version>3.2.0</version>
+      <groupId>org.metadatacenter</groupId>
+      <artifactId>cedar-test-support-library</artifactId>
       <scope>test</scope>
     </dependency>
 
