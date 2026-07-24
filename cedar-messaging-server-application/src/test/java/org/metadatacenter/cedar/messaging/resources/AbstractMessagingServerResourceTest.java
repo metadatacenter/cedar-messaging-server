@@ -13,7 +13,7 @@ import org.metadatacenter.cedar.messaging.MessagingServerConfiguration;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.config.environment.CedarEnvironmentVariableProvider;
 import org.metadatacenter.model.SystemComponent;
-import org.metadatacenter.util.test.TestUserUtil;
+import org.metadatacenter.util.test.TestAuthUtil;
 
 import javax.ws.rs.client.Client;
 import java.util.Map;
@@ -50,9 +50,13 @@ public abstract class AbstractMessagingServerResourceTest {
     client.property(ClientProperties.CONNECT_TIMEOUT, 3000);
     client.property(ClientProperties.READ_TIMEOUT, 30000);
 
-    authHeader1 = TestUserUtil.getTestUser1AuthHeader(cedarConfig);
-    authHeader2 = TestUserUtil.getTestUser2AuthHeader(cedarConfig);
-    authHeaderAdmin = TestUserUtil.getAdminUserAuthHeader(cedarConfig);
+    // Replace the Neo4j-backed user service wired at application startup with an in-memory one,
+    // so API-key authentication needs no live Neo4j (and no Keycloak)
+    TestAuthUtil.installInMemoryUserService(cedarConfig);
+
+    authHeader1 = TestAuthUtil.getTestUser1AuthHeader(cedarConfig);
+    authHeader2 = TestAuthUtil.getTestUser2AuthHeader(cedarConfig);
+    authHeaderAdmin = TestAuthUtil.getAdminUserAuthHeader(cedarConfig);
   }
 
   @Before
