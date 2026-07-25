@@ -1,14 +1,14 @@
 package org.metadatacenter.cedar.messaging.resources;
 
 import io.dropwizard.client.JerseyClientBuilder;
+import io.dropwizard.testing.DropwizardTestSupport;
 import io.dropwizard.testing.ResourceHelpers;
-import io.dropwizard.testing.junit.DropwizardAppRule;
 import org.metadatacenter.util.test.EmbeddedCedarMySql;
 import org.glassfish.jersey.client.ClientProperties;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.metadatacenter.cedar.messaging.MessagingServerApplicationTest;
 import org.metadatacenter.cedar.messaging.MessagingServerConfiguration;
 import org.metadatacenter.config.CedarConfig;
@@ -25,10 +25,15 @@ import java.util.Map;
 public abstract class AbstractMessagingServerResourceTest {
 
   static {
-    // Must run before the application rule boots the server, which reads the MySQL env vars.
+    // Must run before the test support boots the server, which reads the MySQL env vars.
     // The message store comes from an in-process MariaDB; Redis is redirected to a dead port,
-    // since queue writes are best-effort - the suite needs no live backend at all.
-    EmbeddedCedarMySql.startAndRedirectEnvironment("CEDAR_MESSAGING_MYSQL", Map.of("CEDAR_REDIS_PERSISTENT_PORT", "1"));
+    // since queue writes are best-effort - the suite needs no live backend at all. Alternate
+    // server ports, so the test instance never collides with a running dev server.
+    EmbeddedCedarMySql.startAndRedirectEnvironment("CEDAR_MESSAGING_MYSQL", Map.of(
+        "CEDAR_MESSAGING_HTTP_PORT", "19012",
+        "CEDAR_MESSAGING_ADMIN_PORT", "19112",
+        "CEDAR_MESSAGING_STOP_PORT", "19212",
+        "CEDAR_REDIS_PERSISTENT_PORT", "1"));
   }
 
   protected static CedarConfig cedarConfig;
@@ -40,13 +45,13 @@ public abstract class AbstractMessagingServerResourceTest {
   protected static String baseUrlSummary;
   protected static String baseUrlMessages;
 
-  @ClassRule
-  public static final DropwizardAppRule<MessagingServerConfiguration> RULE =
-      new DropwizardAppRule<>(MessagingServerApplicationTest.class, ResourceHelpers.resourceFilePath("test-config" +
+  public static final DropwizardTestSupport<MessagingServerConfiguration> SERVER =
+      new DropwizardTestSupport<>(MessagingServerApplicationTest.class, ResourceHelpers.resourceFilePath("test-config" +
           ".yml"));
 
-  @BeforeClass
+  @BeforeAll
   public static void oneTimeSetUpAbstract() {
+    SERVER.before();
 
     SystemComponent systemComponent = SystemComponent.SERVER_MESSAGING;
     Map<String, String> environment = CedarEnvironmentVariableProvider.getFor(systemComponent);
@@ -54,10 +59,10 @@ public abstract class AbstractMessagingServerResourceTest {
 
     AbstractMessagingServerResourceTest.cedarConfig = cedarConfig;
 
-    baseUrlSummary = BASE_URL + ":" + RULE.getLocalPort() + "/summary";
-    baseUrlMessages = BASE_URL + ":" + RULE.getLocalPort() + "/messages";
+    baseUrlSummary = BASE_URL + ":" + SERVER.getLocalPort() + "/summary";
+    baseUrlMessages = BASE_URL + ":" + SERVER.getLocalPort() + "/messages";
 
-    client = new JerseyClientBuilder(RULE.getEnvironment()).build("Messaging server endpoint client");
+    client = new JerseyClientBuilder(SERVER.getEnvironment()).build("Messaging server endpoint client");
     client.property(ClientProperties.CONNECT_TIMEOUT, 3000);
     client.property(ClientProperties.READ_TIMEOUT, 30000);
 
@@ -76,6 +81,11 @@ public abstract class AbstractMessagingServerResourceTest {
     seedUserSummary(TestAuthUtil.getAdminUser(cedarConfig));
   }
 
+  @AfterAll
+  public static void oneTimeTearDownAbstract() {
+    SERVER.after();
+  }
+
   private static void seedUserSummary(CedarUser user) {
     CedarUserSummary summary = new CedarUserSummary();
     summary.setId(user.getId());
@@ -83,11 +93,11 @@ public abstract class AbstractMessagingServerResourceTest {
     UserSummaryCache.getInstance().put(summary);
   }
 
-  @Before
+  @BeforeEach
   public void setUpAbstract() {
   }
 
-  @After
+  @AfterEach
   public void tearDownAbstract() {
   }
 
