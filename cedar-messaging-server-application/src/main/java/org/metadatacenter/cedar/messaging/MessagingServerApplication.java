@@ -3,11 +3,11 @@ package org.metadatacenter.cedar.messaging;
 import io.dropwizard.hibernate.HibernateBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-import org.metadatacenter.cedar.messaging.health.MessagingServerHealthCheck;
 import org.metadatacenter.cedar.messaging.resources.CommandResource;
 import org.metadatacenter.cedar.messaging.resources.IndexResource;
 import org.metadatacenter.cedar.messaging.resources.MessagesResource;
 import org.metadatacenter.cedar.messaging.resources.SummaryResource;
+import org.metadatacenter.cedar.util.dw.CedarDefaultHealthCheck;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceApplication;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.messaging.dao.*;
@@ -66,7 +66,7 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
   @Override
   public void runApp(MessagingServerConfiguration configuration, Environment environment) {
 
-    final IndexResource index = new IndexResource();
+    final IndexResource index = new IndexResource(cedarConfig);
     environment.jersey().register(index);
 
     final MessagesResource messages = new MessagesResource(cedarConfig, userDAO, messageDAO, userMessageDAO,
@@ -79,7 +79,7 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
     final CommandResource command = new CommandResource(cedarConfig, userMessageDAO);
     environment.jersey().register(command);
 
-    final MessagingServerHealthCheck healthCheck = new MessagingServerHealthCheck();
+    final CedarDefaultHealthCheck healthCheck = new CedarDefaultHealthCheck();
     environment.healthChecks().register("message", healthCheck);
   }
 }
