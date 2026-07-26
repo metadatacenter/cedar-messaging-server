@@ -50,7 +50,7 @@ public abstract class AbstractMessagingServerResourceTest {
           ".yml"));
 
   @BeforeAll
-  public static void oneTimeSetUpAbstract() {
+  public static void oneTimeSetUpAbstract() throws Exception {
     SERVER.before();
 
     SystemComponent systemComponent = SystemComponent.SERVER_MESSAGING;
