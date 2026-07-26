@@ -5,7 +5,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.metadatacenter.messaging.model.*;
 
-import javax.persistence.criteria.*;
+import jakarta.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.List;
 

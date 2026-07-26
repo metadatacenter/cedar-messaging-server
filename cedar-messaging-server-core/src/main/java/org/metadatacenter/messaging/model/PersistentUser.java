@@ -1,6 +1,6 @@
 package org.metadatacenter.messaging.model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(
@@ -10,7 +10,7 @@ import javax.persistence.*;
 public class PersistentUser {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   private String cid;

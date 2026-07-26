@@ -5,9 +5,9 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.metadatacenter.messaging.model.PersistentMessageRecipient;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 
 public class PersistentMessageRecipientDAO extends AbstractDAO<PersistentMessageRecipient> {
 

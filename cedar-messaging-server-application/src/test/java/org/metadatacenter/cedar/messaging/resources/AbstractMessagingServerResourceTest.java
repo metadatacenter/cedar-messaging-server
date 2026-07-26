@@ -19,7 +19,7 @@ import org.metadatacenter.server.security.model.user.CedarUser;
 import org.metadatacenter.server.security.model.user.CedarUserSummary;
 import org.metadatacenter.util.test.TestAuthUtil;
 
-import javax.ws.rs.client.Client;
+import jakarta.ws.rs.client.Client;
 import java.util.Map;
 
 public abstract class AbstractMessagingServerResourceTest {

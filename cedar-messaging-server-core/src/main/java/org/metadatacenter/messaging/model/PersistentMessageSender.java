@@ -2,7 +2,7 @@ package org.metadatacenter.messaging.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "message_sender",
@@ -11,7 +11,7 @@ import javax.persistence.*;
 public class PersistentMessageSender {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @JsonProperty("@id")

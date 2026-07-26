@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.db.DataSourceFactory;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceConfiguration;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 public class MessagingServerConfiguration extends CedarMicroserviceConfiguration {
 
