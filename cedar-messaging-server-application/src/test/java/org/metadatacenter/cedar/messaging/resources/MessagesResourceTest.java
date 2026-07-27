@@ -1,36 +1,39 @@
 package org.metadatacenter.cedar.messaging.resources;
 
-import org.junit.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.metadatacenter.messaging.model.PersistentMessageRecipientType;
 import org.metadatacenter.messaging.model.PersistentMessageSenderProcessId;
 import org.metadatacenter.messaging.model.PersistentMessageSenderType;
 import org.metadatacenter.util.json.JsonMapper;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.HashMap;
 import java.util.Map;
 
 public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
 
-  @BeforeClass
+  @BeforeAll
   public static void oneTimeSetUp() {
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
   }
 
   @Test
-  @Ignore
   public void sendFromUser1ToUser2() {
     String url = baseUrlMessages;
     Map<String, Object> content = new HashMap<>();
@@ -46,15 +49,14 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
 
     Entity postContent = Entity.entity(content, MediaType.APPLICATION_JSON);
     Response response = client.target(url).request().header("Authorization", authHeader1).post(postContent);
-    Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
-    Assert.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
+    Assertions.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    Assertions.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
     Map<String, Object> summary = response.readEntity(new GenericType<>() {
     });
     System.out.println(JsonMapper.MAPPER.valueToTree(summary));
   }
 
   @Test
-  @Ignore
   public void sendFromCedarAdminToUser1() {
     String url = baseUrlMessages;
     Map<String, Object> content = new HashMap<>();
@@ -70,15 +72,14 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
 
     Entity postContent = Entity.entity(content, MediaType.APPLICATION_JSON);
     Response response = client.target(url).request().header("Authorization", authHeaderAdmin).post(postContent);
-    Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
-    Assert.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
+    Assertions.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    Assertions.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
     Map<String, Object> summary = response.readEntity(new GenericType<>() {
     });
     System.out.println(JsonMapper.MAPPER.valueToTree(summary));
   }
 
   @Test
-  @Ignore
   public void sendFromProcessToUser2() {
     String url = baseUrlMessages;
     Map<String, Object> content = new HashMap<>();
@@ -99,8 +100,8 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
 
     Entity postContent = Entity.entity(content, MediaType.APPLICATION_JSON);
     Response response = client.target(url).request().header("Authorization", authHeaderAdmin).post(postContent);
-    Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
-    Assert.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
+    Assertions.assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    Assertions.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
     Map<String, Object> summary = response.readEntity(new GenericType<>() {
     });
     System.out.println(JsonMapper.MAPPER.valueToTree(summary));

@@ -3,7 +3,7 @@ package org.metadatacenter.messaging.model;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "user_message",
@@ -15,7 +15,7 @@ import javax.persistence.*;
 public class PersistentUserMessage {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   private String cid;

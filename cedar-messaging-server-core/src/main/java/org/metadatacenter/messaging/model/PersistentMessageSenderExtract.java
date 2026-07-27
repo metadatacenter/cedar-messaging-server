@@ -1,7 +1,7 @@
 package org.metadatacenter.messaging.model;
 
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 
 public class PersistentMessageSenderExtract {
 
