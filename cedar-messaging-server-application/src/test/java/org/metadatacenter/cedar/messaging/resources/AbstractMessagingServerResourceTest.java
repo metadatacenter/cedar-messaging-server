@@ -1,6 +1,7 @@
 package org.metadatacenter.cedar.messaging.resources;
 
 import io.dropwizard.client.JerseyClientBuilder;
+import io.dropwizard.client.JerseyClientConfiguration;
 import io.dropwizard.testing.DropwizardTestSupport;
 import io.dropwizard.testing.ResourceHelpers;
 import org.metadatacenter.util.test.EmbeddedCedarMySql;
@@ -62,7 +63,13 @@ public abstract class AbstractMessagingServerResourceTest {
     baseUrlSummary = BASE_URL + ":" + SERVER.getLocalPort() + "/summary";
     baseUrlMessages = BASE_URL + ":" + SERVER.getLocalPort() + "/messages";
 
-    client = new JerseyClientBuilder(SERVER.getEnvironment()).build("Messaging server endpoint client");
+    // Dropwizard's default client config enables gzip, which leaves the client trying to gunzip a
+    // response body that is not gzip-encoded, so readEntity() fails with "ZipException: Not in GZIP
+    // format". The tests do not need compression; disable it.
+    JerseyClientConfiguration clientConfig = new JerseyClientConfiguration();
+    clientConfig.setGzipEnabled(false);
+    clientConfig.setGzipEnabledForRequests(false);
+    client = new JerseyClientBuilder(SERVER.getEnvironment()).using(clientConfig).build("Messaging server endpoint client");
     client.property(ClientProperties.CONNECT_TIMEOUT, 3000);
     client.property(ClientProperties.READ_TIMEOUT, 30000);
 
