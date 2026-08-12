@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.metadatacenter.messaging.model.PersistentMessageRecipientType;
+import org.metadatacenter.messaging.model.PersistentMessageSender;
 import org.metadatacenter.messaging.model.PersistentMessageSenderProcessId;
 import org.metadatacenter.messaging.model.PersistentMessageSenderType;
 import org.metadatacenter.util.json.JsonMapper;
@@ -16,8 +17,12 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.metadatacenter.constant.HttpConstants.CONTENT_TYPE_APPLICATION_MERGE_PATCH_JSON;
 
 public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
 
@@ -77,6 +82,60 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     Map<String, Object> summary = response.readEntity(new GenericType<>() {
     });
     System.out.println(JsonMapper.MAPPER.valueToTree(summary));
+  }
+
+  /**
+   * A sender whose display name cannot be resolved leaves the name out, rather than failing.
+   *
+   * <p>{@code UserSummaryCache.getUser} answers null for an id it cannot resolve — a deleted account,
+   * or the user server being unreachable — and that answer was dereferenced. A listing builds one
+   * extract per message, so one unresolvable sender turned the whole of GET /messages into a 500.
+   *
+   * <p>Driven through a sender carrying no id, which reaches the same null answer without a lookup,
+   * so the suite stays free of any backend. The branch it proves is the one an unresolvable id takes.
+   */
+  @Test
+  public void aSenderWithNoResolvableSummaryYieldsNoScreenName() {
+    PersistentMessageSender sender = new PersistentMessageSender();
+    sender.setSenderType(PersistentMessageSenderType.USER);
+    sender.setCid(null);
+
+    Assertions.assertNull(MessagesResource.senderScreenName(sender));
+    Assertions.assertNull(MessagesResource.senderScreenName(null));
+  }
+
+  /**
+   * Patching a message belonging to someone else is refused as forbidden, not unauthorized. The
+   * caller is identified and simply does not own the message; a 401 tells them to authenticate
+   * again, which cannot help.
+   */
+  @Test
+  public void patchingAnotherUsersMessageIsForbidden() {
+    Map<String, Object> content = new HashMap<>();
+    content.put("subject", "Test message whose recipient is Test User 2");
+    content.put("body", "Only its recipient may patch it.");
+
+    Map<String, Object> to = new HashMap<>();
+    to.put("recipientType", PersistentMessageRecipientType.USER.getValue());
+    to.put("@id", cedarConfig.getTestUsers().getTestUser2().getId());
+    content.put("to", to);
+
+    Response created = client.target(baseUrlMessages).request()
+        .header("Authorization", authHeader1)
+        .post(Entity.entity(content, MediaType.APPLICATION_JSON));
+    Assertions.assertEquals(Status.OK.getStatusCode(), created.getStatus());
+    Map<String, Object> message = created.readEntity(new GenericType<>() {
+    });
+    String messageId = (String) message.get("id");
+    Assertions.assertNotNull(messageId, "the created message should carry an id: " + message);
+
+    // User 1 sent it, so it belongs to user 2. The sender is not its owner either.
+    Response patched = client.target(baseUrlMessages + "/" + URLEncoder.encode(messageId, StandardCharsets.UTF_8))
+        .request()
+        .header("Authorization", authHeader1)
+        .method("PATCH", Entity.entity(Map.of("notificationStatus", "notified"),
+            CONTENT_TYPE_APPLICATION_MERGE_PATCH_JSON));
+    Assertions.assertEquals(Status.FORBIDDEN.getStatusCode(), patched.getStatus());
   }
 
   @Test
