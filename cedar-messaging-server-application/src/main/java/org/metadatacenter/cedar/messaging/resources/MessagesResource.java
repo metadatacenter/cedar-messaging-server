@@ -156,13 +156,8 @@ public class MessagesResource extends AbstractMessagingResource {
       return CedarResponse.notFound().errorMessage("The specified recipient can not be found").build();
     }
 
-    PersistentMessageRecipient persistentMessageRecipient = messageRecipientDAO.findByCid(recipient.getId());
-    if (persistentMessageRecipient == null) {
-      persistentMessageRecipient = new PersistentMessageRecipient();
-      persistentMessageRecipient.setCid(recipient.getId());
-      persistentMessageRecipient.setRecipientType(PersistentMessageRecipientType.USER);
-      messageRecipientDAO.create(persistentMessageRecipient);
-    }
+    PersistentMessageRecipient persistentMessageRecipient =
+        messageRecipientDAO.findOrCreateByCid(recipient.getId(), PersistentMessageRecipientType.USER);
 
     PersistentMessageSender persistentMessageSender = null;
     // Sender is not specified, it is the current user
@@ -171,13 +166,7 @@ public class MessagesResource extends AbstractMessagingResource {
       // summary whose id is the id that was passed in, and dereferencing that answer failed the send
       // outright whenever the user server could not be reached — for a value the request already had.
       String senderCid = c.getCedarUser().getId();
-      persistentMessageSender = messageSenderDAO.findByCid(senderCid);
-      if (persistentMessageSender == null) {
-        persistentMessageSender = new PersistentMessageSender();
-        persistentMessageSender.setCid(senderCid);
-        persistentMessageSender.setSenderType(PersistentMessageSenderType.USER);
-        messageSenderDAO.create(persistentMessageSender);
-      }
+      persistentMessageSender = messageSenderDAO.findOrCreateByCid(senderCid, PersistentMessageSenderType.USER);
     } else {
       // Sender is specified, it must be a process
       PersistentMessageSender senderInQuery = message.getSender();
@@ -208,12 +197,7 @@ public class MessagesResource extends AbstractMessagingResource {
       }
     }
 
-    PersistentUser persistentUser = userDAO.findByCid(recipient.getId());
-    if (persistentUser == null) {
-      persistentUser = new PersistentUser();
-      persistentUser.setCid(recipient.getId());
-      userDAO.create(persistentUser);
-    }
+    PersistentUser persistentUser = userDAO.findOrCreateByCid(recipient.getId());
 
     String newMessageId = linkedDataUtil.buildNewLinkedDataId(CedarResourceType.MESSAGE);
     PersistentMessage persistentMessage = new PersistentMessage();
