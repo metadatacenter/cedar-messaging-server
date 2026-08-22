@@ -101,13 +101,30 @@ public class PersistentUserMessageDAO extends AbstractDAO<PersistentUserMessage>
     return q.list();
   }
 
+  /**
+   * Marks every unread message of a user read, and answers how many rows that changed.
+   * <p>
+   * The count comes from the statement rather than from the size of a list read beforehand, which is
+   * what the caller reports as {@code updated}. Selecting the unread messages and then updating them
+   * one at a time counted the rows it meant to change, not the rows it did: a message read from
+   * another session in between was still counted, and each row was a statement of its own.
+   * <p>
+   * A bulk update does not go through the persistence context, so any {@code PersistentUserMessage}
+   * already loaded in this session keeps its old read status. Nothing reads one either side of this
+   * call — the endpoint returns the count alone — and a caller that needs the rows afterwards should
+   * re-read them.
+   */
   public int markAllAsRead(String userId) {
-    List<PersistentUserMessage> persistentUserMessages = listForUser(userId, PersistentUserMessageReadStatus
-        .UNREAD);
-    for (PersistentUserMessage pum : persistentUserMessages) {
-      pum.setReadStatus(PersistentUserMessageReadStatus.READ);
-      update(pum);
-    }
-    return persistentUserMessages.size();
+    return currentSession()
+        .createMutationQuery("""
+            UPDATE PersistentUserMessage pum
+            SET pum.readStatus = :readStatus
+            WHERE pum.readStatus = :unreadStatus
+              AND pum.user IN (SELECT u FROM PersistentUser u WHERE u.cid = :userId)
+            """)
+        .setParameter("readStatus", PersistentUserMessageReadStatus.READ)
+        .setParameter("unreadStatus", PersistentUserMessageReadStatus.UNREAD)
+        .setParameter("userId", userId)
+        .executeUpdate();
   }
 }

@@ -4,6 +4,7 @@ import io.dropwizard.hibernate.AbstractDAO;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.metadatacenter.messaging.model.PersistentMessageRecipient;
+import org.metadatacenter.messaging.model.PersistentMessageRecipientType;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -27,5 +28,24 @@ public class PersistentMessageRecipientDAO extends AbstractDAO<PersistentMessage
 
   public Long create(PersistentMessageRecipient persistentMessageRecipient) {
     return persist(persistentMessageRecipient).getId();
+  }
+
+  /**
+   * The row for this cid, inserting one if no request has already. See
+   * {@link PersistentUserDAO#findOrCreateByCid} for why looking up and then inserting is not enough,
+   * and why the violation cannot be caught once it has happened.
+   */
+  public PersistentMessageRecipient findOrCreateByCid(String cid, PersistentMessageRecipientType recipientType) {
+    PersistentMessageRecipient existing = findByCid(cid);
+    if (existing != null) {
+      return existing;
+    }
+    currentSession()
+        .createNativeMutationQuery("INSERT INTO message_recipient (cid, recipientType) VALUES (:cid, :recipientType)"
+            + " ON DUPLICATE KEY UPDATE cid = cid")
+        .setParameter("cid", cid)
+        .setParameter("recipientType", recipientType.name())
+        .executeUpdate();
+    return findByCid(cid);
   }
 }

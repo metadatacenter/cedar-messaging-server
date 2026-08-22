@@ -96,12 +96,27 @@ public class MessagesResource extends AbstractMessagingResource {
   }
 
   private PersistentUserMessageExtract buildUserMessageExtract(CedarRequestContext c, PersistentUserMessage pum) {
-    String screenName = null;
-    if (pum.getMessage().getSender().getSenderType() == PersistentMessageSenderType.USER) {
-      CedarUserSummary userSummary = UserSummaryCache.getInstance().getUser(pum.getMessage().getSender().getCid());
-      screenName = userSummary.getScreenName();
+    return new PersistentUserMessageExtract(pum, senderScreenName(pum.getMessage().getSender()));
+  }
+
+  /**
+   * The sender's display name, or null when there is none to be had: the sender is a process, or the
+   * user server cannot answer for the id.
+   * <p>
+   * {@link UserSummaryCache#getUser} answers null for an id it could not resolve — a deleted account,
+   * or the user server being unreachable — and that answer was dereferenced. Since a listing builds
+   * one of these per message, a single unresolvable sender failed the whole of GET /messages with a
+   * 500. A missing name degrades to no name, as the recipient lookup in postMessage already assumed
+   * and as the resource server does for its provenance names.
+   * <p>
+   * Package-private so a test can ask it about a sender the cache has never held.
+   */
+  static String senderScreenName(PersistentMessageSender sender) {
+    if (sender == null || sender.getSenderType() != PersistentMessageSenderType.USER) {
+      return null;
     }
-    return new PersistentUserMessageExtract(pum, screenName);
+    CedarUserSummary userSummary = UserSummaryCache.getInstance().getUser(sender.getCid());
+    return userSummary == null ? null : userSummary.getScreenName();
   }
 
   @POST
@@ -141,25 +156,17 @@ public class MessagesResource extends AbstractMessagingResource {
       return CedarResponse.notFound().errorMessage("The specified recipient can not be found").build();
     }
 
-    PersistentMessageRecipient persistentMessageRecipient = messageRecipientDAO.findByCid(recipient.getId());
-    if (persistentMessageRecipient == null) {
-      persistentMessageRecipient = new PersistentMessageRecipient();
-      persistentMessageRecipient.setCid(recipient.getId());
-      persistentMessageRecipient.setRecipientType(PersistentMessageRecipientType.USER);
-      messageRecipientDAO.create(persistentMessageRecipient);
-    }
+    PersistentMessageRecipient persistentMessageRecipient =
+        messageRecipientDAO.findOrCreateByCid(recipient.getId(), PersistentMessageRecipientType.USER);
 
     PersistentMessageSender persistentMessageSender = null;
     // Sender is not specified, it is the current user
     if (message.getSender() == null) {
-      CedarUserSummary senderSummary = UserSummaryCache.getInstance().getUser(c.getCedarUser().getId());
-      persistentMessageSender = messageSenderDAO.findByCid(senderSummary.getId());
-      if (persistentMessageSender == null) {
-        persistentMessageSender = new PersistentMessageSender();
-        persistentMessageSender.setCid(senderSummary.getId());
-        persistentMessageSender.setSenderType(PersistentMessageSenderType.USER);
-        messageSenderDAO.create(persistentMessageSender);
-      }
+      // The sender is the caller, so their id is already in hand. Asking the cache for it returned a
+      // summary whose id is the id that was passed in, and dereferencing that answer failed the send
+      // outright whenever the user server could not be reached — for a value the request already had.
+      String senderCid = c.getCedarUser().getId();
+      persistentMessageSender = messageSenderDAO.findOrCreateByCid(senderCid, PersistentMessageSenderType.USER);
     } else {
       // Sender is specified, it must be a process
       PersistentMessageSender senderInQuery = message.getSender();
@@ -190,12 +197,7 @@ public class MessagesResource extends AbstractMessagingResource {
       }
     }
 
-    PersistentUser persistentUser = userDAO.findByCid(recipient.getId());
-    if (persistentUser == null) {
-      persistentUser = new PersistentUser();
-      persistentUser.setCid(recipient.getId());
-      userDAO.create(persistentUser);
-    }
+    PersistentUser persistentUser = userDAO.findOrCreateByCid(recipient.getId());
 
     String newMessageId = linkedDataUtil.buildNewLinkedDataId(CedarResourceType.MESSAGE);
     PersistentMessage persistentMessage = new PersistentMessage();
@@ -239,7 +241,9 @@ public class MessagesResource extends AbstractMessagingResource {
     }
 
     if (!c.getCedarUser().getId().equals(pum.getUser().getCid())) {
-      return CedarResponse.unauthorized().errorMessage("You do not have permission to modify this user message")
+      // Forbidden, not unauthorized: the caller is identified and simply does not own this message.
+      // A 401 tells them to authenticate again, which cannot help and hides the real answer.
+      return CedarResponse.forbidden().errorMessage("You do not have permission to modify this user message")
           .build();
     }
 
