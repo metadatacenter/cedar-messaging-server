@@ -39,18 +39,18 @@ public class PersistentUserDAO extends AbstractDAO<PersistentUser> {
    * session unusable, so it cannot be caught and worked around here.
    * <p>
    * The insert therefore tells the database to do nothing when the row is already there, and the row
-   * is read back afterwards: whichever request inserted it, both get the same one. The trailing
-   * assignment is a no-op that turns the duplicate key into a quiet zero-row update.
+   * is read back afterwards: whichever request inserted it, both get the same one. MySQL reports
+   * the existing primary key through {@code LAST_INSERT_ID(id)} on the duplicate path, avoiding a
+   * second cid lookup that can still see the transaction's earlier repeatable-read snapshot.
    */
   public PersistentUser findOrCreateByCid(String cid) {
-    PersistentUser existing = findByCid(cid);
-    if (existing != null) {
-      return existing;
-    }
     currentSession()
-        .createNativeMutationQuery("INSERT INTO `user` (cid) VALUES (:cid) ON DUPLICATE KEY UPDATE cid = cid")
+        .createNativeMutationQuery("INSERT INTO `user` (cid) VALUES (:cid)"
+            + " ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)")
         .setParameter("cid", cid)
         .executeUpdate();
-    return findByCid(cid);
+    return currentSession()
+        .createNativeQuery("SELECT * FROM `user` WHERE id = LAST_INSERT_ID()", PersistentUser.class)
+        .getSingleResult();
   }
 }

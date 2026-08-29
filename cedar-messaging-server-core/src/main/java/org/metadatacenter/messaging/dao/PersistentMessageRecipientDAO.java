@@ -36,16 +36,15 @@ public class PersistentMessageRecipientDAO extends AbstractDAO<PersistentMessage
    * and why the violation cannot be caught once it has happened.
    */
   public PersistentMessageRecipient findOrCreateByCid(String cid, PersistentMessageRecipientType recipientType) {
-    PersistentMessageRecipient existing = findByCid(cid);
-    if (existing != null) {
-      return existing;
-    }
     currentSession()
         .createNativeMutationQuery("INSERT INTO message_recipient (cid, recipientType) VALUES (:cid, :recipientType)"
-            + " ON DUPLICATE KEY UPDATE cid = cid")
+            + " ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)")
         .setParameter("cid", cid)
         .setParameter("recipientType", recipientType.name())
         .executeUpdate();
-    return findByCid(cid);
+    return currentSession()
+        .createNativeQuery("SELECT * FROM message_recipient WHERE id = LAST_INSERT_ID()",
+            PersistentMessageRecipient.class)
+        .getSingleResult();
   }
 }

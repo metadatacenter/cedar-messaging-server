@@ -40,17 +40,15 @@ public class PersistentMessageSenderDAO extends AbstractDAO<PersistentMessageSen
    * cid it brings with it, and nothing in the schema makes one process hold one row.
    */
   public PersistentMessageSender findOrCreateByCid(String cid, PersistentMessageSenderType senderType) {
-    PersistentMessageSender existing = findByCid(cid);
-    if (existing != null) {
-      return existing;
-    }
     currentSession()
         .createNativeMutationQuery("INSERT INTO message_sender (cid, senderType) VALUES (:cid, :senderType)"
-            + " ON DUPLICATE KEY UPDATE cid = cid")
+            + " ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)")
         .setParameter("cid", cid)
         .setParameter("senderType", senderType.name())
         .executeUpdate();
-    return findByCid(cid);
+    return currentSession()
+        .createNativeQuery("SELECT * FROM message_sender WHERE id = LAST_INSERT_ID()", PersistentMessageSender.class)
+        .getSingleResult();
   }
 
   public PersistentMessageSender findByProcessId(PersistentMessageSenderProcessId processId) {

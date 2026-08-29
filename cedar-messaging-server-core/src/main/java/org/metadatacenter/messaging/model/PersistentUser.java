@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(
-    name = "user",
+    // USER is also a MariaDB system relation. Hibernate 6.6's schema metadata lookup otherwise
+    // mistakes that relation for this application table, skips creating cedar_messaging.user, and
+    // later fails the user_message foreign key. Quoting keeps the existing physical table name.
+    name = "`user`",
     uniqueConstraints = @UniqueConstraint(columnNames = {"cid"}, name = "UK_user_cid")
 )
 public class PersistentUser {
