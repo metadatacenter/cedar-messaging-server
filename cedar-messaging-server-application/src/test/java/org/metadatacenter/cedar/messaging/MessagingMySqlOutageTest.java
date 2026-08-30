@@ -55,7 +55,7 @@ public class MessagingMySqlOutageTest {
   }
 
   private static final DropwizardTestSupport<MessagingServerConfiguration> SERVER =
-      new DropwizardTestSupport<>(MessagingServerApplicationTest.class,
+      new DropwizardTestSupport<>(MessagingServerApplication.class,
           ResourceHelpers.resourceFilePath("test-config.yml"));
   private static final HttpClient CLIENT = HttpClient.newHttpClient();
 

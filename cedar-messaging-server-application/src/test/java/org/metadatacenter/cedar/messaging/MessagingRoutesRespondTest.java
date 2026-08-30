@@ -40,7 +40,7 @@ public class MessagingRoutesRespondTest {
   }
 
   private static final DropwizardTestSupport<MessagingServerConfiguration> SERVER =
-      new DropwizardTestSupport<>(MessagingServerApplicationTest.class,
+      new DropwizardTestSupport<>(MessagingServerApplication.class,
           ResourceHelpers.resourceFilePath("test-config.yml"));
 
   @BeforeAll

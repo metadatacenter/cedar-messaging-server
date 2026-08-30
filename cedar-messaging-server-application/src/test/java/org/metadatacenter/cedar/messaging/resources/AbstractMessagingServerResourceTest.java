@@ -10,7 +10,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.metadatacenter.cedar.messaging.MessagingServerApplicationTest;
+import org.metadatacenter.cedar.messaging.MessagingServerApplication;
 import org.metadatacenter.cedar.messaging.MessagingServerConfiguration;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.config.environment.CedarEnvironmentVariableProvider;
@@ -47,7 +47,7 @@ public abstract class AbstractMessagingServerResourceTest {
   protected static String baseUrlMessages;
 
   public static final DropwizardTestSupport<MessagingServerConfiguration> SERVER =
-      new DropwizardTestSupport<>(MessagingServerApplicationTest.class, ResourceHelpers.resourceFilePath("test-config" +
+      new DropwizardTestSupport<>(MessagingServerApplication.class, ResourceHelpers.resourceFilePath("test-config" +
           ".yml"));
 
   @BeforeAll
