@@ -30,12 +30,12 @@ public class MessagingRoutesRespondTest {
   static {
     // Must run before the test support boots the server, which reads the MySQL and port env vars.
     // The message store comes from an in-process MariaDB; Redis is redirected to a dead port, since
-    // queue writes are best-effort and no probe here gets far enough to need one. Ports are distinct
+    // queue writes are best-effort and no probe here gets far enough to need one. Server ports are OS-assigned
     // from the dev server and from every other booting test class.
     EmbeddedCedarMySql.startAndRedirectEnvironment("CEDAR_MESSAGING_MYSQL", Map.of(
-        "CEDAR_MESSAGING_HTTP_PORT", "19029",
-        "CEDAR_MESSAGING_ADMIN_PORT", "19129",
-        "CEDAR_MESSAGING_STOP_PORT", "19229",
+        "CEDAR_MESSAGING_HTTP_PORT", "0",
+        "CEDAR_MESSAGING_ADMIN_PORT", "0",
+        "CEDAR_MESSAGING_STOP_PORT", "0",
         "CEDAR_REDIS_PERSISTENT_PORT", "1"));
   }
 

@@ -31,9 +31,9 @@ public abstract class AbstractMessagingServerResourceTest {
     // since queue writes are best-effort - the suite needs no live backend at all. Alternate
     // server ports, so the test instance never collides with a running dev server.
     EmbeddedCedarMySql.startAndRedirectEnvironment("CEDAR_MESSAGING_MYSQL", Map.of(
-        "CEDAR_MESSAGING_HTTP_PORT", "19012",
-        "CEDAR_MESSAGING_ADMIN_PORT", "19112",
-        "CEDAR_MESSAGING_STOP_PORT", "19212",
+        "CEDAR_MESSAGING_HTTP_PORT", "0",
+        "CEDAR_MESSAGING_ADMIN_PORT", "0",
+        "CEDAR_MESSAGING_STOP_PORT", "0",
         "CEDAR_REDIS_PERSISTENT_PORT", "1"));
   }
 
