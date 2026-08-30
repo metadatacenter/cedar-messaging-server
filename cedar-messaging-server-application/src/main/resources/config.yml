@@ -3,9 +3,6 @@ server:
   - type: http
   adminConnectors:
   - type: http
-database:
-  driverClass: foo
-  url: bar
 logging:
   level: INFO
   loggers:
