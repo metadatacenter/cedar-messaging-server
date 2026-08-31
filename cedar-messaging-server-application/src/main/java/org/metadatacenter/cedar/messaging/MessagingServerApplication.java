@@ -4,9 +4,9 @@ import io.dropwizard.hibernate.HibernateBundle;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
 import org.metadatacenter.cedar.messaging.resources.CommandResource;
-import org.metadatacenter.cedar.messaging.resources.IndexResource;
 import org.metadatacenter.cedar.messaging.resources.MessagesResource;
 import org.metadatacenter.cedar.messaging.resources.SummaryResource;
+import org.metadatacenter.cedar.util.dw.CedarMicroserviceIndexResource;
 import org.metadatacenter.cedar.util.dw.CedarDefaultHealthCheck;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceApplication;
 import org.metadatacenter.config.CedarConfig;
@@ -62,7 +62,8 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
   @Override
   public void runApp(MessagingServerConfiguration configuration, Environment environment) {
 
-    final IndexResource index = new IndexResource(cedarConfig);
+    final CedarMicroserviceIndexResource index =
+        new CedarMicroserviceIndexResource(cedarConfig, getServerName());
     environment.jersey().register(index);
 
     final MessagesResource messages = new MessagesResource(cedarConfig, userDAO, messageDAO, userMessageDAO,
