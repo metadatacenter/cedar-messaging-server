@@ -1,6 +1,5 @@
 package org.metadatacenter.cedar.messaging;
 
-import io.dropwizard.hibernate.HibernateBundle;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
 import org.metadatacenter.cedar.messaging.resources.CommandResource;
@@ -8,6 +7,7 @@ import org.metadatacenter.cedar.messaging.resources.MessagesResource;
 import org.metadatacenter.cedar.messaging.resources.SummaryResource;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceIndexResource;
 import org.metadatacenter.cedar.util.dw.CedarDefaultHealthCheck;
+import org.metadatacenter.cedar.util.dw.CedarHibernateBundle;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceApplication;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.messaging.dao.*;
@@ -17,7 +17,7 @@ import org.metadatacenter.server.cache.user.UserSummaryCache;
 
 public class MessagingServerApplication extends CedarMicroserviceApplication<MessagingServerConfiguration> {
 
-  private HibernateBundle<MessagingServerConfiguration> hibernate;
+  private CedarHibernateBundle<MessagingServerConfiguration> hibernate;
   private PersistentUserDAO userDAO;
   private PersistentMessageDAO messageDAO;
   private PersistentUserMessageDAO userMessageDAO;
@@ -35,8 +35,8 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
 
   @Override
   protected void initializeWithBootstrap(Bootstrap<MessagingServerConfiguration> bootstrap, CedarConfig cedarConfig) {
-    hibernate = new CedarMessagingHibernateBundle(
-        cedarConfig,
+    hibernate = new CedarHibernateBundle<>(
+        cedarConfig.getMessagingServerConfig(),
         PersistentMessage.class, new Class[]{
         PersistentUser.class,
         PersistentUserMessage.class,
