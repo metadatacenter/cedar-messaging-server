@@ -6,7 +6,6 @@ import org.metadatacenter.cedar.messaging.resources.CommandResource;
 import org.metadatacenter.cedar.messaging.resources.MessagesResource;
 import org.metadatacenter.cedar.messaging.resources.SummaryResource;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceIndexResource;
-import org.metadatacenter.cedar.util.dw.CedarDefaultHealthCheck;
 import org.metadatacenter.cedar.util.dw.CedarHibernateBundle;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceApplication;
 import org.metadatacenter.config.CedarConfig;
@@ -76,7 +75,5 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
     final CommandResource command = new CommandResource(cedarConfig, userMessageDAO);
     environment.jersey().register(command);
 
-    final CedarDefaultHealthCheck healthCheck = new CedarDefaultHealthCheck();
-    environment.healthChecks().register("message", healthCheck);
   }
 }
