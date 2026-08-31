@@ -1,0 +1,22 @@
+# Base OpenAPI document merged into the generated spec by io.swagger.core.v3:swagger-maven-plugin.
+# It seeds the info block (version stamped from the POM via resource filtering) and the api_key
+# security scheme that every resource class references with @SecurityRequirement(name = "api_key").
+openapi: 3.0.1
+info:
+  title: CEDAR Messaging Server API
+  description: |
+    Better Metadata - Better Science
+
+    The messaging server carries messages to CEDAR users: what the workbench shows as a
+    notification, and what a background process sends when it has something to report.
+    
+    Every endpoint acts on the caller's own messages. Sending in a process's name is the one thing
+    here that needs a permission beyond being logged in.
+  version: ${project.version}
+components:
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: Authorization
+      in: header
+      description: "Your CEDAR API key, using the format 'apiKey <yourApiKey>'"
