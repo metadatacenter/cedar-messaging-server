@@ -1,6 +1,12 @@
 package org.metadatacenter.cedar.messaging.resources;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import io.dropwizard.hibernate.UnitOfWork;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.exception.CedarException;
@@ -21,6 +27,8 @@ import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 
 @Path("/summary")
 @Produces(MediaType.APPLICATION_JSON)
+@Tag(name = "Messages")
+@SecurityRequirement(name = "api_key")
 public class SummaryResource extends AbstractMessagingResource {
 
   private static final Logger log = LoggerFactory.getLogger(SummaryResource.class);
@@ -34,6 +42,15 @@ public class SummaryResource extends AbstractMessagingResource {
   @GET
   @Timed
   @UnitOfWork
+  @Operation(summary = "Count the caller's messages",
+      description = "Report how many messages the caller has in total, how many are unread, and how "
+          + "many have not yet been notified. This is the counts alone, for a workbench badge that "
+          + "does not want the messages themselves.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Total, unread, and not-yet-notified counts"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
   public Response getSummary() throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);

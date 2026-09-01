@@ -10,7 +10,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.metadatacenter.cedar.messaging.MessagingServerApplicationTest;
+import org.metadatacenter.cedar.messaging.MessagingServerApplication;
 import org.metadatacenter.cedar.messaging.MessagingServerConfiguration;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.config.environment.CedarEnvironmentVariableProvider;
@@ -31,9 +31,9 @@ public abstract class AbstractMessagingServerResourceTest {
     // since queue writes are best-effort - the suite needs no live backend at all. Alternate
     // server ports, so the test instance never collides with a running dev server.
     EmbeddedCedarMySql.startAndRedirectEnvironment("CEDAR_MESSAGING_MYSQL", Map.of(
-        "CEDAR_MESSAGING_HTTP_PORT", "19012",
-        "CEDAR_MESSAGING_ADMIN_PORT", "19112",
-        "CEDAR_MESSAGING_STOP_PORT", "19212",
+        "CEDAR_MESSAGING_HTTP_PORT", "0",
+        "CEDAR_MESSAGING_ADMIN_PORT", "0",
+        "CEDAR_MESSAGING_STOP_PORT", "0",
         "CEDAR_REDIS_PERSISTENT_PORT", "1"));
   }
 
@@ -47,7 +47,7 @@ public abstract class AbstractMessagingServerResourceTest {
   protected static String baseUrlMessages;
 
   public static final DropwizardTestSupport<MessagingServerConfiguration> SERVER =
-      new DropwizardTestSupport<>(MessagingServerApplicationTest.class, ResourceHelpers.resourceFilePath("test-config" +
+      new DropwizardTestSupport<>(MessagingServerApplication.class, ResourceHelpers.resourceFilePath("test-config" +
           ".yml"));
 
   @BeforeAll

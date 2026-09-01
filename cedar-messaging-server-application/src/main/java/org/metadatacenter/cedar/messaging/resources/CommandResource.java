@@ -1,6 +1,12 @@
 package org.metadatacenter.cedar.messaging.resources;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import io.dropwizard.hibernate.UnitOfWork;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.exception.CedarException;
@@ -21,6 +27,8 @@ import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 
 @Path("/command")
 @Produces(MediaType.APPLICATION_JSON)
+@Tag(name = "Messages")
+@SecurityRequirement(name = "api_key")
 public class CommandResource extends AbstractMessagingResource {
 
   private static final Logger log = LoggerFactory.getLogger(CommandResource.class);
@@ -38,6 +46,14 @@ public class CommandResource extends AbstractMessagingResource {
   @Timed
   @UnitOfWork
   @Path("/" + MARK_ALL_AS_READ_COMMAND)
+  @Operation(summary = "Mark every message as read",
+      description = "Mark all of the caller's unread messages read at once, and report how many that "
+          + "was. Acts only on the caller's own messages.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "How many messages were marked read"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
   public Response markAllAsRead() throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);

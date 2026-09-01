@@ -1,13 +1,12 @@
 package org.metadatacenter.cedar.messaging;
 
-import io.dropwizard.hibernate.HibernateBundle;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
 import org.metadatacenter.cedar.messaging.resources.CommandResource;
-import org.metadatacenter.cedar.messaging.resources.IndexResource;
 import org.metadatacenter.cedar.messaging.resources.MessagesResource;
 import org.metadatacenter.cedar.messaging.resources.SummaryResource;
-import org.metadatacenter.cedar.util.dw.CedarDefaultHealthCheck;
+import org.metadatacenter.cedar.util.dw.CedarMicroserviceIndexResource;
+import org.metadatacenter.cedar.util.dw.CedarHibernateBundle;
 import org.metadatacenter.cedar.util.dw.CedarMicroserviceApplication;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.messaging.dao.*;
@@ -17,7 +16,7 @@ import org.metadatacenter.server.cache.user.UserSummaryCache;
 
 public class MessagingServerApplication extends CedarMicroserviceApplication<MessagingServerConfiguration> {
 
-  private HibernateBundle<MessagingServerConfiguration> hibernate;
+  private CedarHibernateBundle<MessagingServerConfiguration> hibernate;
   private PersistentUserDAO userDAO;
   private PersistentMessageDAO messageDAO;
   private PersistentUserMessageDAO userMessageDAO;
@@ -35,8 +34,8 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
 
   @Override
   protected void initializeWithBootstrap(Bootstrap<MessagingServerConfiguration> bootstrap, CedarConfig cedarConfig) {
-    hibernate = new CedarMessagingHibernateBundle(
-        cedarConfig,
+    hibernate = new CedarHibernateBundle<>(
+        cedarConfig.getMessagingServerConfig(),
         PersistentMessage.class, new Class[]{
         PersistentUser.class,
         PersistentUserMessage.class,
@@ -45,10 +44,6 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
     }
     );
     bootstrap.addBundle(hibernate);
-  }
-
-  public boolean isTestMode() {
-    return false;
   }
 
   @Override
@@ -66,7 +61,8 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
   @Override
   public void runApp(MessagingServerConfiguration configuration, Environment environment) {
 
-    final IndexResource index = new IndexResource(cedarConfig);
+    final CedarMicroserviceIndexResource index =
+        new CedarMicroserviceIndexResource(cedarConfig, getServerName());
     environment.jersey().register(index);
 
     final MessagesResource messages = new MessagesResource(cedarConfig, userDAO, messageDAO, userMessageDAO,
@@ -79,7 +75,5 @@ public class MessagingServerApplication extends CedarMicroserviceApplication<Mes
     final CommandResource command = new CommandResource(cedarConfig, userMessageDAO);
     environment.jersey().register(command);
 
-    final CedarDefaultHealthCheck healthCheck = new CedarDefaultHealthCheck();
-    environment.healthChecks().register("message", healthCheck);
   }
 }

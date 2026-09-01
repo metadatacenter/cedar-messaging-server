@@ -44,9 +44,9 @@ public class MessagingMySqlOutageTest {
       environment.put("CEDAR_MESSAGING_MYSQL_PORT", String.valueOf(database.getConfiguration().getPort()));
       environment.put("CEDAR_MESSAGING_MYSQL_USER", "root");
       environment.put("CEDAR_MESSAGING_MYSQL_PASSWORD", "");
-      environment.put("CEDAR_MESSAGING_HTTP_PORT", "19039");
-      environment.put("CEDAR_MESSAGING_ADMIN_PORT", "19139");
-      environment.put("CEDAR_MESSAGING_STOP_PORT", "19239");
+      environment.put("CEDAR_MESSAGING_HTTP_PORT", "0");
+      environment.put("CEDAR_MESSAGING_ADMIN_PORT", "0");
+      environment.put("CEDAR_MESSAGING_STOP_PORT", "0");
       environment.put("CEDAR_REDIS_PERSISTENT_PORT", "1");
       CedarEnvironmentSource.setOverride(environment);
     } catch (Exception e) {
@@ -55,7 +55,7 @@ public class MessagingMySqlOutageTest {
   }
 
   private static final DropwizardTestSupport<MessagingServerConfiguration> SERVER =
-      new DropwizardTestSupport<>(MessagingServerApplicationTest.class,
+      new DropwizardTestSupport<>(MessagingServerApplication.class,
           ResourceHelpers.resourceFilePath("test-config.yml"));
   private static final HttpClient CLIENT = HttpClient.newHttpClient();
 

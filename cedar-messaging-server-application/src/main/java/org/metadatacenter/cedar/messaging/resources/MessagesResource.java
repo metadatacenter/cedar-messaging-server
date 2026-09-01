@@ -1,6 +1,12 @@
 package org.metadatacenter.cedar.messaging.resources;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.dropwizard.hibernate.UnitOfWork;
@@ -35,6 +41,8 @@ import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 
 @Path("/messages")
 @Produces(MediaType.APPLICATION_JSON)
+@Tag(name = "Messages")
+@SecurityRequirement(name = "api_key")
 public class MessagesResource extends AbstractMessagingResource {
 
   private static final Logger log = LoggerFactory.getLogger(MessagesResource.class);
@@ -58,8 +66,19 @@ public class MessagesResource extends AbstractMessagingResource {
   @GET
   @Timed
   @UnitOfWork
-  public Response getMessages(@QueryParam(QP_NOTIFICATION_STATUS) Optional<String> notificationStatus) throws
-      CedarException {
+  @Operation(summary = "List the caller's messages",
+      description = "Return the caller's messages along with the same counts the summary reports. A "
+          + "sender whose display name cannot be resolved — a deleted account, or the user server "
+          + "being unreachable — is returned without one rather than failing the listing.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "The caller's messages, with total, unread and not-notified counts"),
+      @ApiResponse(responseCode = "400", description = "The notification status is not one of the accepted values"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
+  public Response getMessages(
+      @Parameter(description = "Return only messages in this notification state. Omit it for all of them.")
+      @QueryParam(QP_NOTIFICATION_STATUS) Optional<String> notificationStatus) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
 
@@ -122,6 +141,19 @@ public class MessagesResource extends AbstractMessagingResource {
   @POST
   @Timed
   @UnitOfWork
+  @Operation(summary = "Send a message",
+      description = "Send a message to one user. The recipient is required and must be a user: "
+          + "broadcast is not supported. The sender defaults to the caller; naming a sender means "
+          + "sending on behalf of a process, which needs the process-message permission.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "The message as stored"),
+      @ApiResponse(responseCode = "400",
+          description = "No recipient, an unsupported recipient type, or a named sender that is not a known process"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "Sending in a process's name without the permission to do so"),
+      @ApiResponse(responseCode = "404", description = "No such recipient"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
   public Response postMessage() throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
@@ -229,7 +261,20 @@ public class MessagesResource extends AbstractMessagingResource {
   @UnitOfWork
   @Path("/{id}")
   @Consumes(CONTENT_TYPE_APPLICATION_MERGE_PATCH_JSON)
-  public Response patchMessage(@PathParam(PP_ID) String id) throws CedarException {
+  @Operation(summary = "Update a message's notification state",
+      description = "Change the notification state of one of the caller's own messages, as a JSON "
+          + "merge patch carrying `notificationStatus`. Nothing else about a message can be changed.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "The message as updated"),
+      @ApiResponse(responseCode = "400", description = "The notification status is missing or not one of the accepted values"),
+      @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", description = "The message belongs to someone else"),
+      @ApiResponse(responseCode = "404", description = "No such message"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
+  public Response patchMessage(
+      @Parameter(description = "Message identifier.", required = true)
+      @PathParam(PP_ID) String id) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
 
