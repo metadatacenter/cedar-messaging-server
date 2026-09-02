@@ -3,7 +3,7 @@
   "info" : {
     "description" : "Better Metadata - Better Science\n\nThe messaging server carries messages to CEDAR users: what the workbench shows as a\nnotification, and what a background process sends when it has something to report.\n\nEvery endpoint acts on the caller's own messages. Sending in a process's name is the one thing\nhere that needs a permission beyond being logged in.\n",
     "title" : "CEDAR Messaging Server API",
-    "version" : "2.9.5"
+    "version" : "2.9.6"
   },
   "paths" : {
     "/command/mark-all-as-read" : {
