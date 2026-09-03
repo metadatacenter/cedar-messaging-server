@@ -3,6 +3,9 @@ package org.metadatacenter.cedar.messaging.resources;
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -71,7 +74,8 @@ public class MessagesResource extends AbstractMessagingResource {
           + "sender whose display name cannot be resolved — a deleted account, or the user server "
           + "being unreachable — is returned without one rather than failing the listing.")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "The caller's messages, with total, unread and not-notified counts"),
+      @ApiResponse(responseCode = "200", description = "The caller's messages, with total, unread and not-notified counts",
+          content = @Content(schema = @Schema(ref = "#/components/schemas/MessagePage"))),
       @ApiResponse(responseCode = "400", description = "The notification status is not one of the accepted values"),
       @ApiResponse(responseCode = "401", description = "Unauthorized"),
       @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -145,8 +149,12 @@ public class MessagesResource extends AbstractMessagingResource {
       description = "Send a message to one user. The recipient is required and must be a user: "
           + "broadcast is not supported. The sender defaults to the caller; naming a sender means "
           + "sending on behalf of a process, which needs the process-message permission.")
+  @RequestBody(description = "The message and its recipient", required = true,
+      content = @Content(mediaType = MediaType.APPLICATION_JSON,
+          schema = @Schema(ref = "#/components/schemas/MessageRequest")))
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "The message as stored"),
+      @ApiResponse(responseCode = "200", description = "The message as stored",
+          content = @Content(schema = @Schema(ref = "#/components/schemas/Message"))),
       @ApiResponse(responseCode = "400",
           description = "No recipient, an unsupported recipient type, or a named sender that is not a known process"),
       @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -264,8 +272,12 @@ public class MessagesResource extends AbstractMessagingResource {
   @Operation(summary = "Update a message's notification state",
       description = "Change the notification state of one of the caller's own messages, as a JSON "
           + "merge patch carrying `notificationStatus`. Nothing else about a message can be changed.")
+  @RequestBody(description = "The new notification state", required = true,
+      content = @Content(mediaType = CONTENT_TYPE_APPLICATION_MERGE_PATCH_JSON,
+          schema = @Schema(ref = "#/components/schemas/MessageNotificationPatch")))
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "The message as updated"),
+      @ApiResponse(responseCode = "200", description = "The message as updated",
+          content = @Content(schema = @Schema(ref = "#/components/schemas/Message"))),
       @ApiResponse(responseCode = "400", description = "The notification status is missing or not one of the accepted values"),
       @ApiResponse(responseCode = "401", description = "Unauthorized"),
       @ApiResponse(responseCode = "403", description = "The message belongs to someone else"),

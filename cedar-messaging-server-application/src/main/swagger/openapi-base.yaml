@@ -14,6 +14,154 @@ info:
     here that needs a permission beyond being logged in.
   version: ${project.version}
 components:
+  schemas:
+    MessageRecipient:
+      type: object
+      required:
+        - '@id'
+        - recipientType
+      properties:
+        '@id':
+          type: string
+          format: uri
+        recipientType:
+          type: string
+          enum: [user]
+      additionalProperties: false
+    MessageSenderRequest:
+      type: object
+      description: Optional process identity to send as; ordinary user messages omit this object.
+      required:
+        - senderType
+        - processId
+      properties:
+        '@id':
+          type: string
+          format: uri
+        senderType:
+          type: string
+          enum: [process]
+        processId:
+          type: string
+          enum: [submission.IMMPORT, submission.NCBI]
+      additionalProperties: false
+    MessageRequest:
+      type: object
+      required:
+        - to
+      properties:
+        '@id':
+          type: string
+          format: uri
+          description: Accepted for compatibility but ignored; the server assigns the message identifier.
+        subject:
+          type: string
+        body:
+          type: string
+        to:
+          $ref: '#/components/schemas/MessageRecipient'
+        from:
+          $ref: '#/components/schemas/MessageSenderRequest'
+      additionalProperties: false
+    MessageNotificationPatch:
+      type: object
+      required:
+        - notificationStatus
+      properties:
+        notificationStatus:
+          type: string
+          enum: [notnotified, notified]
+      additionalProperties: false
+    MessageSender:
+      type: object
+      required:
+        - id
+        - senderType
+      properties:
+        id:
+          type: string
+          format: uri
+        senderType:
+          type: string
+          enum: [user, process]
+        processId:
+          type: string
+          nullable: true
+          enum: [submission.IMMPORT, submission.NCBI]
+        screenName:
+          type: string
+          nullable: true
+      additionalProperties: false
+    Message:
+      type: object
+      required:
+        - id
+        - readStatus
+        - notificationStatus
+        - creationDate
+        - from
+      properties:
+        id:
+          type: string
+          format: uri
+        readStatus:
+          type: string
+          enum: [unread, read]
+        notificationStatus:
+          type: string
+          enum: [notnotified, notified]
+        subject:
+          type: string
+          nullable: true
+        body:
+          type: string
+          nullable: true
+        creationDate:
+          type: string
+          format: date-time
+        from:
+          $ref: '#/components/schemas/MessageSender'
+      additionalProperties: false
+    MessageSummary:
+      type: object
+      required: [total, unread, notnotified]
+      properties:
+        total:
+          type: integer
+          format: int64
+        unread:
+          type: integer
+          format: int64
+        notnotified:
+          type: integer
+          format: int64
+      additionalProperties: false
+    MessagePage:
+      type: object
+      required: [total, unread, notnotified, messages]
+      properties:
+        total:
+          type: integer
+          format: int64
+        unread:
+          type: integer
+          format: int64
+        notnotified:
+          type: integer
+          format: int64
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+      additionalProperties: false
+    UpdatedCount:
+      type: object
+      required: [updated]
+      properties:
+        updated:
+          type: integer
+          format: int32
+      additionalProperties: false
   securitySchemes:
     api_key:
       type: apiKey

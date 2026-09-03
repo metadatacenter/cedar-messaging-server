@@ -18,6 +18,10 @@ paths:
       operationId: markAllAsRead
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdatedCount"
           description: How many messages were marked read
         "401":
           description: Unauthorized
@@ -44,6 +48,10 @@ paths:
           type: string
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessagePage"
           description: "The caller's messages, with total, unread and not-notified\
             \ counts"
         "400":
@@ -63,8 +71,19 @@ paths:
         \ naming a sender means sending on behalf of a process, which needs the process-message\
         \ permission."
       operationId: postMessage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageRequest"
+        description: The message and its recipient
+        required: true
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
           description: The message as stored
         "400":
           description: "No recipient, an unsupported recipient type, or a named sender\
@@ -95,8 +114,19 @@ paths:
         required: true
         schema:
           type: string
+      requestBody:
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: "#/components/schemas/MessageNotificationPatch"
+        description: The new notification state
+        required: true
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
           description: The message as updated
         "400":
           description: The notification status is missing or not one of the accepted
@@ -122,6 +152,10 @@ paths:
       operationId: getSummary
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageSummary"
           description: "Total, unread, and not-yet-notified counts"
         "401":
           description: Unauthorized
@@ -133,6 +167,178 @@ paths:
       tags:
       - Messages
 components:
+  schemas:
+    Message:
+      type: object
+      additionalProperties: false
+      properties:
+        body:
+          type: string
+          nullable: true
+        creationDate:
+          type: string
+          format: date-time
+        from:
+          $ref: "#/components/schemas/MessageSender"
+        id:
+          type: string
+          format: uri
+        notificationStatus:
+          type: string
+          enum:
+          - notnotified
+          - notified
+        readStatus:
+          type: string
+          enum:
+          - unread
+          - read
+        subject:
+          type: string
+          nullable: true
+      required:
+      - creationDate
+      - from
+      - id
+      - notificationStatus
+      - readStatus
+    MessageNotificationPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        notificationStatus:
+          type: string
+          enum:
+          - notnotified
+          - notified
+      required:
+      - notificationStatus
+    MessagePage:
+      type: object
+      additionalProperties: false
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+        notnotified:
+          type: integer
+          format: int64
+        total:
+          type: integer
+          format: int64
+        unread:
+          type: integer
+          format: int64
+      required:
+      - messages
+      - notnotified
+      - total
+      - unread
+    MessageRecipient:
+      type: object
+      additionalProperties: false
+      properties:
+        '@id':
+          type: string
+          format: uri
+        recipientType:
+          type: string
+          enum:
+          - user
+      required:
+      - '@id'
+      - recipientType
+    MessageRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        '@id':
+          type: string
+          format: uri
+          description: Accepted for compatibility but ignored; the server assigns
+            the message identifier.
+        body:
+          type: string
+        from:
+          $ref: "#/components/schemas/MessageSenderRequest"
+        subject:
+          type: string
+        to:
+          $ref: "#/components/schemas/MessageRecipient"
+      required:
+      - to
+    MessageSender:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uri
+        processId:
+          type: string
+          enum:
+          - submission.IMMPORT
+          - submission.NCBI
+          nullable: true
+        screenName:
+          type: string
+          nullable: true
+        senderType:
+          type: string
+          enum:
+          - user
+          - process
+      required:
+      - id
+      - senderType
+    MessageSenderRequest:
+      type: object
+      additionalProperties: false
+      description: Optional process identity to send as; ordinary user messages omit
+        this object.
+      properties:
+        '@id':
+          type: string
+          format: uri
+        processId:
+          type: string
+          enum:
+          - submission.IMMPORT
+          - submission.NCBI
+        senderType:
+          type: string
+          enum:
+          - process
+      required:
+      - processId
+      - senderType
+    MessageSummary:
+      type: object
+      additionalProperties: false
+      properties:
+        notnotified:
+          type: integer
+          format: int64
+        total:
+          type: integer
+          format: int64
+        unread:
+          type: integer
+          format: int64
+      required:
+      - notnotified
+      - total
+      - unread
+    UpdatedCount:
+      type: object
+      additionalProperties: false
+      properties:
+        updated:
+          type: integer
+          format: int32
+      required:
+      - updated
   securitySchemes:
     api_key:
       description: "Your CEDAR API key, using the format 'apiKey <yourApiKey>'"
