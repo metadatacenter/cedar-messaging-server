@@ -3,6 +3,8 @@ package org.metadatacenter.cedar.messaging.resources;
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -50,7 +52,8 @@ public class CommandResource extends AbstractMessagingResource {
       description = "Mark all of the caller's unread messages read at once, and report how many that "
           + "was. Acts only on the caller's own messages.")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "How many messages were marked read"),
+      @ApiResponse(responseCode = "200", description = "How many messages were marked read",
+          content = @Content(schema = @Schema(ref = "#/components/schemas/UpdatedCount"))),
       @ApiResponse(responseCode = "401", description = "Unauthorized"),
       @ApiResponse(responseCode = "500", description = "Internal server error")
   })
