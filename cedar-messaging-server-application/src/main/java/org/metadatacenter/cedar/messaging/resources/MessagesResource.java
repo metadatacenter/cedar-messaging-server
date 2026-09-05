@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.dropwizard.hibernate.UnitOfWork;
 import io.dropwizard.jersey.PATCH;
+import org.metadatacenter.util.http.CedarError;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.exception.CedarProcessingException;
@@ -76,9 +77,9 @@ public class MessagesResource extends AbstractMessagingResource {
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "The caller's messages, with total, unread and not-notified counts",
           content = @Content(schema = @Schema(ref = "#/components/schemas/MessagePage"))),
-      @ApiResponse(responseCode = "400", description = "The notification status is not one of the accepted values"),
-      @ApiResponse(responseCode = "401", description = "Unauthorized"),
-      @ApiResponse(responseCode = "500", description = "Internal server error")
+      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "The notification status is not one of the accepted values"),
+      @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
+      @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response getMessages(
       @Parameter(description = "Return only messages in this notification state. Omit it for all of them.")
@@ -155,12 +156,12 @@ public class MessagesResource extends AbstractMessagingResource {
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "The message as stored",
           content = @Content(schema = @Schema(ref = "#/components/schemas/Message"))),
-      @ApiResponse(responseCode = "400",
+      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)),
           description = "No recipient, an unsupported recipient type, or a named sender that is not a known process"),
-      @ApiResponse(responseCode = "401", description = "Unauthorized"),
-      @ApiResponse(responseCode = "403", description = "Sending in a process's name without the permission to do so"),
-      @ApiResponse(responseCode = "404", description = "No such recipient"),
-      @ApiResponse(responseCode = "500", description = "Internal server error")
+      @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Sending in a process's name without the permission to do so"),
+      @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "No such recipient"),
+      @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response postMessage() throws CedarException {
     CedarRequestContext c = buildRequestContext();
@@ -278,11 +279,11 @@ public class MessagesResource extends AbstractMessagingResource {
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "The message as updated",
           content = @Content(schema = @Schema(ref = "#/components/schemas/Message"))),
-      @ApiResponse(responseCode = "400", description = "The notification status is missing or not one of the accepted values"),
-      @ApiResponse(responseCode = "401", description = "Unauthorized"),
-      @ApiResponse(responseCode = "403", description = "The message belongs to someone else"),
-      @ApiResponse(responseCode = "404", description = "No such message"),
-      @ApiResponse(responseCode = "500", description = "Internal server error")
+      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "The notification status is missing or not one of the accepted values"),
+      @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
+      @ApiResponse(responseCode = "403", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "The message belongs to someone else"),
+      @ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "No such message"),
+      @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response patchMessage(
       @Parameter(description = "Message identifier.", required = true)

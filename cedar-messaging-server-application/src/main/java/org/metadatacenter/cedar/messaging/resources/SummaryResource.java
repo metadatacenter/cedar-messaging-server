@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.dropwizard.hibernate.UnitOfWork;
+import org.metadatacenter.util.http.CedarError;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.exception.CedarException;
 import org.metadatacenter.messaging.dao.PersistentUserMessageDAO;
@@ -51,8 +52,8 @@ public class SummaryResource extends AbstractMessagingResource {
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Total, unread, and not-yet-notified counts",
           content = @Content(schema = @Schema(ref = "#/components/schemas/MessageSummary"))),
-      @ApiResponse(responseCode = "401", description = "Unauthorized"),
-      @ApiResponse(responseCode = "500", description = "Internal server error")
+      @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
+      @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response getSummary() throws CedarException {
     CedarRequestContext c = buildRequestContext();
