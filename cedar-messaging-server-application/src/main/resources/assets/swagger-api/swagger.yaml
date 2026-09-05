@@ -9,7 +9,7 @@ info:
     Every endpoint acts on the caller's own messages. Sending in a process's name is the one thing
     here that needs a permission beyond being logged in.
   title: CEDAR Messaging Server API
-  version: 2.9.8-SNAPSHOT
+  version: 2.9.9-SNAPSHOT
 paths:
   /command/mark-all-as-read:
     post:
