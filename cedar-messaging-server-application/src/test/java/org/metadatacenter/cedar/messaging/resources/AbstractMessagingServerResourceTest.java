@@ -26,6 +26,10 @@ import java.util.Map;
 public abstract class AbstractMessagingServerResourceTest {
 
   static {
+    redirectEnvironment();
+  }
+
+  private static void redirectEnvironment() {
     // Must run before the test support boots the server, which reads the MySQL env vars.
     // The message store comes from an in-process MariaDB; Redis is redirected to a dead port,
     // since queue writes are best-effort - the suite needs no live backend at all. Alternate
@@ -52,6 +56,8 @@ public abstract class AbstractMessagingServerResourceTest {
 
   @BeforeAll
   public static void oneTimeSetUpAbstract() throws Exception {
+    // Concrete subclasses share this abstract harness, so restore its redirect for each class.
+    redirectEnvironment();
     SERVER.before();
 
     SystemComponent systemComponent = SystemComponent.SERVER_MESSAGING;
