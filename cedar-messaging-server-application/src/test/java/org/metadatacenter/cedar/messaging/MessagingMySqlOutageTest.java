@@ -14,6 +14,7 @@ import org.metadatacenter.config.environment.CedarEnvironmentSource;
 import org.metadatacenter.config.environment.CedarEnvironmentVariableProvider;
 import org.metadatacenter.model.SystemComponent;
 import org.metadatacenter.util.json.JsonMapper;
+import org.metadatacenter.util.test.TcpFaultProxy;
 import org.metadatacenter.util.test.TestAuthUtil;
 
 import java.net.URI;
@@ -31,17 +32,21 @@ import java.util.Map;
 public class MessagingMySqlOutageTest {
 
   private static DB database;
+  private static TcpFaultProxy databaseProxy;
 
   static {
     try {
       DBConfigurationBuilder databaseConfiguration = DBConfigurationBuilder.newBuilder();
+      databaseConfiguration.addArg("--bind-address=127.0.0.1");
       databaseConfiguration.setPort(0);
       database = DB.newEmbeddedDB(databaseConfiguration.build());
       database.start();
+      databaseProxy = TcpFaultProxy.start(
+          "127.0.0.1", database.getConfiguration().getPort());
 
       Map<String, String> environment = new HashMap<>(CedarEnvironmentSource.getAll());
       environment.put("CEDAR_MESSAGING_MYSQL_HOST", "127.0.0.1");
-      environment.put("CEDAR_MESSAGING_MYSQL_PORT", String.valueOf(database.getConfiguration().getPort()));
+      environment.put("CEDAR_MESSAGING_MYSQL_PORT", String.valueOf(databaseProxy.port()));
       environment.put("CEDAR_MESSAGING_MYSQL_USER", "root");
       environment.put("CEDAR_MESSAGING_MYSQL_PASSWORD", "");
       environment.put("CEDAR_MESSAGING_HTTP_PORT", "0");
@@ -68,18 +73,26 @@ public class MessagingMySqlOutageTest {
     CedarConfig cedarConfig = CedarConfig.getInstance(environment);
     TestAuthUtil.installInMemoryUserService(cedarConfig);
     authHeaderUser1 = TestAuthUtil.getTestUser1AuthHeader(cedarConfig);
-    database.stop();
+    databaseProxy.failConnections();
   }
 
   @AfterAll
-  public static void stopServer() {
-    SERVER.after();
+  public static void stopServer() throws Exception {
+    try {
+      SERVER.after();
+    } finally {
+      try {
+        databaseProxy.close();
+      } finally {
+        database.stop();
+      }
+    }
   }
 
   @Test
   public void messageReadReturnsSanitizedServiceUnavailable() throws Exception {
     HttpRequest request = HttpRequest.newBuilder()
-        .uri(URI.create("http://localhost:" + SERVER.getLocalPort() + "/messages"))
+        .uri(URI.create("http://127.0.0.1:" + SERVER.getLocalPort() + "/messages"))
         .header("Authorization", authHeaderUser1)
         .GET()
         .build();
