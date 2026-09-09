@@ -172,7 +172,7 @@ public class MessagesResource extends AbstractMessagingResource {
 
     JsonNode jsonBody = c.request().getRequestBody().asJson();
     try {
-      message = JsonMapper.MAPPER.treeToValue(jsonBody, PersistentMessageRequest.class);
+      message = JsonMapper.STRICT_MAPPER.treeToValue(jsonBody, PersistentMessageRequest.class);
     } catch (JsonProcessingException e) {
       throw new CedarProcessingException(e);
     }

@@ -54,7 +54,7 @@ public class SummaryResourceTest extends AbstractMessagingServerResourceTest {
     Assertions.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
     Map<String, Object> summary = response.readEntity(new GenericType<Map<String, Object>>() {
     });
-    System.out.println(JsonMapper.MAPPER.valueToTree(summary));
+    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(summary));
     Assertions.assertTrue(summary.size() == 3, "Three keys in summary");
     Assertions.assertTrue(summary.containsKey("total"), "Total is present");
     Assertions.assertTrue(summary.containsKey("unread"), "Unread is present");

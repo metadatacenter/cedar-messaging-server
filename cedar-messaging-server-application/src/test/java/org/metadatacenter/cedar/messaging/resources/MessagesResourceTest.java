@@ -59,7 +59,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     to.put("@id", cedarConfig.getTestUsers().getTestUser2().getId());
     content.put("to", to);
 
-    System.out.println(JsonMapper.MAPPER.valueToTree(content));
+    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(content));
 
     Entity postContent = Entity.entity(content, MediaType.APPLICATION_JSON);
     Response response = client.target(url).request().header("Authorization", authHeader1).post(postContent);
@@ -67,7 +67,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     Assertions.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
     Map<String, Object> summary = response.readEntity(new GenericType<>() {
     });
-    System.out.println(JsonMapper.MAPPER.valueToTree(summary));
+    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(summary));
   }
 
   @Test
@@ -82,7 +82,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     to.put("@id", cedarConfig.getTestUsers().getTestUser1().getId());
     content.put("to", to);
 
-    System.out.println(JsonMapper.MAPPER.valueToTree(content));
+    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(content));
 
     Entity postContent = Entity.entity(content, MediaType.APPLICATION_JSON);
     Response response = client.target(url).request().header("Authorization", authHeaderAdmin).post(postContent);
@@ -90,7 +90,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     Assertions.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
     Map<String, Object> summary = response.readEntity(new GenericType<>() {
     });
-    System.out.println(JsonMapper.MAPPER.valueToTree(summary));
+    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(summary));
   }
 
   /**
@@ -217,7 +217,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     from.put("processId", PersistentMessageSenderProcessId.SUBMISSION_NCBI.getValue());
     content.put("from", from);
 
-    System.out.println(JsonMapper.MAPPER.valueToTree(content));
+    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(content));
 
     Entity postContent = Entity.entity(content, MediaType.APPLICATION_JSON);
     Response response = client.target(url).request().header("Authorization", authHeaderAdmin).post(postContent);
@@ -225,7 +225,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     Assertions.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
     Map<String, Object> summary = response.readEntity(new GenericType<>() {
     });
-    System.out.println(JsonMapper.MAPPER.valueToTree(summary));
+    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(summary));
   }
 
 }
