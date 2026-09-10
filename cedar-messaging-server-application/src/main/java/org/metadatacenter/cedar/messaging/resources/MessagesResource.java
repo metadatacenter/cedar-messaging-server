@@ -10,14 +10,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import io.dropwizard.hibernate.UnitOfWork;
 import io.dropwizard.jersey.PATCH;
 import org.metadatacenter.util.http.CedarError;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.exception.CedarException;
-import org.metadatacenter.exception.CedarProcessingException;
 import org.metadatacenter.messaging.dao.*;
 import org.metadatacenter.messaging.model.*;
 import org.metadatacenter.model.CedarResourceType;
@@ -28,7 +25,6 @@ import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.security.model.user.CedarUser;
 import org.metadatacenter.server.security.model.user.CedarUserSummary;
 import org.metadatacenter.util.http.CedarResponse;
-import org.metadatacenter.util.json.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -167,15 +163,12 @@ public class MessagesResource extends AbstractMessagingResource {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
 
-    PersistentMessageRequest message = null;
     CedarUserSummary recipient = null;
 
-    JsonNode jsonBody = c.request().getRequestBody().asJson();
-    try {
-      message = JsonMapper.STRICT_MAPPER.treeToValue(jsonBody, PersistentMessageRequest.class);
-    } catch (JsonProcessingException e) {
-      throw new CedarProcessingException(e);
-    }
+    // A body the endpoint cannot read as the request it declares is the caller's to fix. Reading it
+    // here reported an unknown or misspelled property as a 500, since the processing exception this
+    // used to throw carries the server's own failure status.
+    PersistentMessageRequest message = c.request().getRequestBody().convert(PersistentMessageRequest.class);
 
     PersistentMessageRecipient recipientInQuery = message.getRecipient();
     if (recipientInQuery == null) {
@@ -305,7 +298,9 @@ public class MessagesResource extends AbstractMessagingResource {
           .build();
     }
 
-    CedarParameter notificationStatus = c.request().getRequestBody().get("notificationStatus");
+    CedarParameter notificationStatus = c.request().getRequestBody()
+        .mustHaveOnly("notificationStatus")
+        .get("notificationStatus");
 
     String notificationStatusV = null;
     if (!notificationStatus.isEmpty()) {
