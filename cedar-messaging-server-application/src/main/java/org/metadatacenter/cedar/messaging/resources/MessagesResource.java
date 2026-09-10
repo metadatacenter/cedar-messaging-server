@@ -91,7 +91,7 @@ public class MessagesResource extends AbstractMessagingResource {
     if (notificationStatus.isPresent()) {
       notificationStatusEnum = PersistentUserMessageNotificationStatus.forValue(notificationStatus.get());
       if (notificationStatusEnum == null) {
-        return CedarResponse.badRequest().errorMessage("The " + QP_NOTIFICATION_STATUS + " value is invalid.")
+        return CedarResponse.badRequest().message("The " + QP_NOTIFICATION_STATUS + " value is invalid.")
             .parameter("notificationStatus", notificationStatus)
             .parameter("validNotificationStatus", PersistentUserMessageNotificationStatus.values())
 
@@ -179,22 +179,22 @@ public class MessagesResource extends AbstractMessagingResource {
 
     PersistentMessageRecipient recipientInQuery = message.getRecipient();
     if (recipientInQuery == null) {
-      return CedarResponse.badRequest().errorMessage("You need to specify a recipient").build();
+      return CedarResponse.badRequest().message("You need to specify a recipient").build();
     }
 
     PersistentMessageRecipientType recipientType = recipientInQuery.getRecipientType();
     if (recipientType == null) {
-      return CedarResponse.badRequest().errorMessage("You need to specify a valid recipient type").build();
+      return CedarResponse.badRequest().message("You need to specify a valid recipient type").build();
     }
     if (recipientType == PersistentMessageRecipientType.BROADCAST) {
-      return CedarResponse.badRequest().errorMessage("Only the value 'user' is supported now as a recipient type")
+      return CedarResponse.badRequest().message("Only the value 'user' is supported now as a recipient type")
           .build();
     }
 
     String recipientCid = recipientInQuery.getCid();
     recipient = UserSummaryCache.getInstance().getUser(recipientCid);
     if (recipient == null) {
-      return CedarResponse.notFound().errorMessage("The specified recipient can not be found").build();
+      return CedarResponse.notFound().message("The specified recipient can not be found").build();
     }
 
     PersistentMessageRecipient persistentMessageRecipient =
@@ -212,18 +212,18 @@ public class MessagesResource extends AbstractMessagingResource {
       // Sender is specified, it must be a process
       PersistentMessageSender senderInQuery = message.getSender();
       if (senderInQuery.getSenderType() != PersistentMessageSenderType.PROCESS) {
-        return CedarResponse.badRequest().errorMessage("If the sender is specified, the senderType must be 'process'")
+        return CedarResponse.badRequest().message("If the sender is specified, the senderType must be 'process'")
             .build();
       } else {
         // It is a process
         PersistentMessageSenderProcessId processId = senderInQuery.getProcessId();
         if (processId == null || PersistentMessageSenderProcessId.NONE == processId) {
-          return CedarResponse.badRequest().errorMessage("Unknown process id").build();
+          return CedarResponse.badRequest().message("Unknown process id").build();
         }
         // The request must come from a user with permission
         CedarUser currentCedarUser = c.getCedarUser();
         if (!currentCedarUser.has(CedarPermission.SEND_PROCESS_MESSAGE)) {
-          return CedarResponse.forbidden().errorMessage("You do not have permission to send a message in the name of " +
+          return CedarResponse.forbidden().message("You do not have permission to send a message in the name of " +
               "a process").build();
         }
         persistentMessageSender = messageSenderDAO.findByProcessId(processId);
@@ -293,7 +293,7 @@ public class MessagesResource extends AbstractMessagingResource {
 
     PersistentUserMessage pum = userMessageDAO.findByCid(id);
     if (pum == null) {
-      return CedarResponse.notFound().errorMessage("User message not found by id")
+      return CedarResponse.notFound().message("User message not found by id")
           .parameter("id", id)
           .build();
     }
@@ -301,7 +301,7 @@ public class MessagesResource extends AbstractMessagingResource {
     if (!c.getCedarUser().getId().equals(pum.getUser().getCid())) {
       // Forbidden, not unauthorized: the caller is identified and simply does not own this message.
       // A 401 tells them to authenticate again, which cannot help and hides the real answer.
-      return CedarResponse.forbidden().errorMessage("You do not have permission to modify this user message")
+      return CedarResponse.forbidden().message("You do not have permission to modify this user message")
           .build();
     }
 
@@ -315,7 +315,7 @@ public class MessagesResource extends AbstractMessagingResource {
 
     PersistentUserMessageNotificationStatus ns = PersistentUserMessageNotificationStatus.forValue(notificationStatusV);
     if (ns == null) {
-      return CedarResponse.badRequest().errorMessage("Invalid notificationStatus").build();
+      return CedarResponse.badRequest().message("Invalid notificationStatus").build();
     }
 
     pum.setNotificationStatus(ns);
