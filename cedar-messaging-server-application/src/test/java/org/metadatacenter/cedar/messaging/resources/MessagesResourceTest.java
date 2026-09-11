@@ -59,7 +59,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     to.put("@id", cedarConfig.getTestUsers().getTestUser2().getId());
     content.put("to", to);
 
-    System.out.println(JsonMapper.MAPPER.valueToTree(content));
+    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(content));
 
     Entity postContent = Entity.entity(content, MediaType.APPLICATION_JSON);
     Response response = client.target(url).request().header("Authorization", authHeader1).post(postContent);
@@ -67,7 +67,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     Assertions.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
     Map<String, Object> summary = response.readEntity(new GenericType<>() {
     });
-    System.out.println(JsonMapper.MAPPER.valueToTree(summary));
+    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(summary));
   }
 
   @Test
@@ -82,7 +82,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     to.put("@id", cedarConfig.getTestUsers().getTestUser1().getId());
     content.put("to", to);
 
-    System.out.println(JsonMapper.MAPPER.valueToTree(content));
+    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(content));
 
     Entity postContent = Entity.entity(content, MediaType.APPLICATION_JSON);
     Response response = client.target(url).request().header("Authorization", authHeaderAdmin).post(postContent);
@@ -90,7 +90,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     Assertions.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
     Map<String, Object> summary = response.readEntity(new GenericType<>() {
     });
-    System.out.println(JsonMapper.MAPPER.valueToTree(summary));
+    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(summary));
   }
 
   /**
@@ -118,6 +118,51 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
    * caller is identified and simply does not own the message; a 401 tells them to authenticate
    * again, which cannot help.
    */
+  /**
+   * A message body accepts what the request declares and nothing else. Reading it used to wrap
+   * Jackson's rejection in a processing exception, which carries the server's own failure status, so
+   * a misspelled property was answered 500. The patch body accepts the notification status alone,
+   * and used to answer 200 to a patch that named something else and changed nothing.
+   */
+  @Test
+  public void aMessageWriteRefusesPropertiesItDoesNotAccept() {
+    Map<String, Object> to = new HashMap<>();
+    to.put("recipientType", PersistentMessageRecipientType.USER.getValue());
+    to.put("@id", cedarConfig.getTestUsers().getTestUser2().getId());
+
+    Map<String, Object> withAnUnknownProperty = new HashMap<>();
+    withAnUnknownProperty.put("subject", "Test message with a property the request does not declare");
+    withAnUnknownProperty.put("body", "It should be refused as a bad request.");
+    withAnUnknownProperty.put("to", to);
+    withAnUnknownProperty.put("notificationStatus", "notified");
+
+    Response posted = client.target(baseUrlMessages).request()
+        .header("Authorization", authHeader1)
+        .post(Entity.entity(withAnUnknownProperty, MediaType.APPLICATION_JSON));
+    Assertions.assertEquals(Status.BAD_REQUEST.getStatusCode(), posted.getStatus(),
+        "a message carrying an undeclared property should be a bad request");
+
+    Map<String, Object> content = new HashMap<>();
+    content.put("subject", "Test message whose patch will name the wrong property");
+    content.put("body", "Its recipient will patch it.");
+    content.put("to", to);
+    Response created = client.target(baseUrlMessages).request()
+        .header("Authorization", authHeader1)
+        .post(Entity.entity(content, MediaType.APPLICATION_JSON));
+    Assertions.assertEquals(Status.OK.getStatusCode(), created.getStatus());
+    Map<String, Object> message = created.readEntity(new GenericType<>() {
+    });
+    String messageId = (String) message.get("id");
+
+    Response patched = client.target(baseUrlMessages + "/" + URLEncoder.encode(messageId, StandardCharsets.UTF_8))
+        .request()
+        .header("Authorization", authHeader2)
+        .method("PATCH", Entity.entity(Map.of("notificationStauts", "notified"),
+            CONTENT_TYPE_APPLICATION_MERGE_PATCH_JSON));
+    Assertions.assertEquals(Status.BAD_REQUEST.getStatusCode(), patched.getStatus(),
+        "a patch naming a property the endpoint does not accept should be a bad request");
+  }
+
   @Test
   public void patchingAnotherUsersMessageIsForbidden() {
     Map<String, Object> content = new HashMap<>();
@@ -217,7 +262,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     from.put("processId", PersistentMessageSenderProcessId.SUBMISSION_NCBI.getValue());
     content.put("from", from);
 
-    System.out.println(JsonMapper.MAPPER.valueToTree(content));
+    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(content));
 
     Entity postContent = Entity.entity(content, MediaType.APPLICATION_JSON);
     Response response = client.target(url).request().header("Authorization", authHeaderAdmin).post(postContent);
@@ -225,7 +270,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     Assertions.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
     Map<String, Object> summary = response.readEntity(new GenericType<>() {
     });
-    System.out.println(JsonMapper.MAPPER.valueToTree(summary));
+    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(summary));
   }
 
 }

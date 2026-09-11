@@ -9,7 +9,7 @@ info:
     Every endpoint acts on the caller's own messages. Sending in a process's name is the one thing
     here that needs a permission beyond being logged in.
   title: CEDAR Messaging Server API
-  version: 2.9.10
+  version: 2.9.11
 paths:
   /:
     get:
@@ -446,7 +446,7 @@ components:
   schemas:
     CedarError:
       type: object
-      additionalProperties: true
+      additionalProperties: false
       description: A CEDAR error response. Diagnostic fields are populated only when
         they are relevant to the failure.
       properties:
@@ -590,12 +590,9 @@ components:
           - doiCanNotBeSet
           - doiAlreadyExists
           - dataCiteDOIDisabled
+          - pinnedVersionUnavailable
           - resourceNotFound
           - internalError
-          nullable: true
-        errorMessage:
-          type: string
-          description: Alias of message retained for compatibility.
           nullable: true
         errorReasonKey:
           type: string
