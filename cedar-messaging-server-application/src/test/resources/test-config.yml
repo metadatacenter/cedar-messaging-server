@@ -7,6 +7,15 @@ server:
   - type: http
     bindHost: 127.0.0.1
     port: 0
+  # The same requestLog block the production config carries, so that a booting application is what
+  # says whether it is valid Dropwizard configuration. A console appender because a test should not
+  # leave a file behind; every key that could be wrong is the same one.
+  requestLog:
+    appenders:
+      - type: console
+        target: stdout
+        timeZone: UTC
+        logFormat: '%h %l %u [%t] "%r" %s %b "%i{Referer}" "%i{User-Agent}" %D'
 logging:
   level: INFO
   loggers:
