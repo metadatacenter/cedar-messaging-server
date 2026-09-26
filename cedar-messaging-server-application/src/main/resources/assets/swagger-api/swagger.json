@@ -374,7 +374,7 @@
     },
     "/messages" : {
       "get" : {
-        "description" : "Return the caller's messages along with the same counts the summary reports. A sender whose display name cannot be resolved — a deleted account, or the user server being unreachable — is returned without one rather than failing the listing.",
+        "description" : "Return a page of the caller's messages, newest first, along with the same counts the summary reports. Follow `paging.next` for the rest. A sender whose display name cannot be resolved — a deleted account, or the user server being unreachable — is returned without one rather than failing the listing.",
         "operationId" : "getMessages",
         "parameters" : [ {
           "description" : "Return only messages in this notification state. Omit it for all of them.",
@@ -382,6 +382,22 @@
           "name" : "notification_status",
           "schema" : {
             "type" : "string"
+          }
+        }, {
+          "description" : "How many messages to return, from 1 to 500. Defaults to 100.",
+          "in" : "query",
+          "name" : "limit",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "description" : "How many messages to skip. Defaults to 0.",
+          "in" : "query",
+          "name" : "offset",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
           }
         } ],
         "responses" : {
@@ -403,7 +419,7 @@
                 }
               }
             },
-            "description" : "The notification status is not one of the accepted values"
+            "description" : "The notification status is not one of the accepted values, or the limit or offset is out of range"
           },
           "401" : {
             "content" : {
@@ -788,7 +804,13 @@
       "MessagePage" : {
         "type" : "object",
         "additionalProperties" : false,
+        "description" : "One page of the caller's messages. total, unread and notnotified count all of the caller's messages, as the summary does; totalCount counts the messages the listing's filter admits, which is what the page walks.",
         "properties" : {
+          "currentOffset" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "The offset of the first message on this page"
+          },
           "messages" : {
             "type" : "array",
             "items" : {
@@ -799,16 +821,47 @@
             "type" : "integer",
             "format" : "int64"
           },
+          "paging" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            },
+            "description" : "Links to the first, previous, next and last pages, keyed by relation. A relation with no page is absent."
+          },
+          "request" : {
+            "$ref" : "#/components/schemas/MessagePageRequest"
+          },
           "total" : {
             "type" : "integer",
             "format" : "int64"
+          },
+          "totalCount" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "How many messages the filter admits"
           },
           "unread" : {
             "type" : "integer",
             "format" : "int64"
           }
         },
-        "required" : [ "messages", "notnotified", "total", "unread" ]
+        "required" : [ "currentOffset", "messages", "notnotified", "paging", "request", "total", "totalCount", "unread" ]
+      },
+      "MessagePageRequest" : {
+        "type" : "object",
+        "additionalProperties" : false,
+        "description" : "The page that was asked for, after defaults were applied",
+        "properties" : {
+          "limit" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "offset" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "limit", "offset" ]
       },
       "MessageRecipient" : {
         "type" : "object",
