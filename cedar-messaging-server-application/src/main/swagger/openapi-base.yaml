@@ -138,7 +138,11 @@ components:
       additionalProperties: false
     MessagePage:
       type: object
-      required: [total, unread, notnotified, messages]
+      description: >-
+        One page of the caller's messages. total, unread and notnotified count all of the caller's
+        messages, as the summary does; totalCount counts the messages the listing's filter admits,
+        which is what the page walks.
+      required: [total, unread, notnotified, messages, request, totalCount, currentOffset, paging]
       properties:
         total:
           type: integer
@@ -153,6 +157,35 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Message'
+        request:
+          $ref: '#/components/schemas/MessagePageRequest'
+        totalCount:
+          type: integer
+          format: int64
+          description: How many messages the filter admits
+        currentOffset:
+          type: integer
+          format: int64
+          description: The offset of the first message on this page
+        paging:
+          type: object
+          description: >-
+            Links to the first, previous, next and last pages, keyed by relation. A relation with
+            no page is absent.
+          additionalProperties:
+            type: string
+      additionalProperties: false
+    MessagePageRequest:
+      type: object
+      description: The page that was asked for, after defaults were applied
+      required: [limit, offset]
+      properties:
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
       additionalProperties: false
     UpdatedCount:
       type: object

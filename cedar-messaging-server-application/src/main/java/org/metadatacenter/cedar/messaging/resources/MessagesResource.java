@@ -25,6 +25,7 @@ import org.metadatacenter.server.security.model.auth.CedarPermission;
 import org.metadatacenter.server.security.model.user.CedarUser;
 import org.metadatacenter.server.security.model.user.CedarUserSummary;
 import org.metadatacenter.util.http.CedarResponse;
+import org.metadatacenter.util.http.PagedQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +47,8 @@ import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 public class MessagesResource extends AbstractMessagingResource {
 
   private static final Logger log = LoggerFactory.getLogger(MessagesResource.class);
+  static final int DEFAULT_PAGE_SIZE = 100;
+  static final int MAX_PAGE_SIZE = 500;
   private final PersistentUserDAO userDAO;
   private final PersistentMessageDAO messageDAO;
   private final PersistentUserMessageDAO userMessageDAO;
@@ -67,21 +70,30 @@ public class MessagesResource extends AbstractMessagingResource {
   @Timed
   @UnitOfWork
   @Operation(summary = "List the caller's messages",
-      description = "Return the caller's messages along with the same counts the summary reports. A "
-          + "sender whose display name cannot be resolved — a deleted account, or the user server "
-          + "being unreachable — is returned without one rather than failing the listing.")
+      description = "Return a page of the caller's messages, newest first, along with the same counts the "
+          + "summary reports. Follow `paging.next` for the rest. A sender whose display name cannot be "
+          + "resolved — a deleted account, or the user server being unreachable — is returned without one "
+          + "rather than failing the listing.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "The caller's messages, with total, unread and not-notified counts",
           content = @Content(schema = @Schema(ref = "#/components/schemas/MessagePage"))),
-      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "The notification status is not one of the accepted values"),
+      @ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "The notification status is not one of the accepted values, or the limit or offset is out of range"),
       @ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Unauthorized"),
       @ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation = CedarError.class)), description = "Internal server error")
   })
   public Response getMessages(
       @Parameter(description = "Return only messages in this notification state. Omit it for all of them.")
-      @QueryParam(QP_NOTIFICATION_STATUS) Optional<String> notificationStatus) throws CedarException {
+      @QueryParam(QP_NOTIFICATION_STATUS) Optional<String> notificationStatus,
+      @Parameter(description = "How many messages to return, from 1 to " + MAX_PAGE_SIZE + ". Defaults to "
+          + DEFAULT_PAGE_SIZE + ".")
+      @QueryParam("limit") Optional<Integer> limit,
+      @Parameter(description = "How many messages to skip. Defaults to 0.")
+      @QueryParam("offset") Optional<Integer> offset) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
+
+    PagedQuery page = new PagedQuery(DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE).limit(limit).offset(offset);
+    page.validate();
 
     PersistentUserMessageNotificationStatus notificationStatusEnum = null;
     if (notificationStatus.isPresent()) {
@@ -97,12 +109,8 @@ public class MessagesResource extends AbstractMessagingResource {
 
     String currentUserId = c.getCedarUser().getId();
 
-    Map<String, Object> map = new HashMap<>();
-    map.put("total", userMessageDAO.getTotalCountForUser(currentUserId));
-    map.put("unread", userMessageDAO.getUnreadCountForUser(currentUserId));
-    map.put("notnotified", userMessageDAO.getNotNotifiedCountForUser(currentUserId));
-
-    List<PersistentUserMessage> list = userMessageDAO.listForUser(currentUserId, notificationStatusEnum);
+    List<PersistentUserMessage> list = userMessageDAO.listForUser(currentUserId, notificationStatusEnum, null,
+        page.getLimit(), page.getOffset());
 
     List<PersistentUserMessageExtract> messages = new ArrayList<>();
 
@@ -110,9 +118,16 @@ public class MessagesResource extends AbstractMessagingResource {
       messages.add(buildUserMessageExtract(c, pum));
     }
 
-    map.put("messages", messages);
+    MessagePage response = new MessagePage(
+        userMessageDAO.getTotalCountForUser(currentUserId),
+        userMessageDAO.getUnreadCountForUser(currentUserId),
+        userMessageDAO.getNotNotifiedCountForUser(currentUserId),
+        messages,
+        uriInfo.getRequestUri().toString(),
+        userMessageDAO.countForUser(currentUserId, notificationStatusEnum, null),
+        page.getLimit(), page.getOffset());
 
-    return Response.ok().entity(map).build();
+    return Response.ok().entity(response).build();
   }
 
   private PersistentUserMessageExtract buildUserMessageExtract(CedarRequestContext c, PersistentUserMessage pum) {

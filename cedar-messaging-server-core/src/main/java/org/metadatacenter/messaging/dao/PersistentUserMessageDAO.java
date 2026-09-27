@@ -81,24 +81,58 @@ public class PersistentUserMessageDAO extends AbstractDAO<PersistentUserMessage>
 
   public List<PersistentUserMessage> listForUser(String userId, PersistentUserMessageNotificationStatus
       notificationStatus, PersistentUserMessageReadStatus readStatus) {
+    return listForUser(userId, notificationStatus, readStatus, null, 0);
+  }
+
+  /**
+   * A page of a user's messages, newest first. Messages created in the same instant are ordered by
+   * their identity, so consecutive pages neither repeat nor skip one. A null {@code limit} returns
+   * every message from {@code offset} on.
+   */
+  public List<PersistentUserMessage> listForUser(String userId, PersistentUserMessageNotificationStatus
+      notificationStatus, PersistentUserMessageReadStatus readStatus, Integer limit, int offset) {
     CriteriaBuilder builder = currentSession().getCriteriaBuilder();
     CriteriaQuery<PersistentUserMessage> query = builder.createQuery(PersistentUserMessage.class);
     Root<PersistentUserMessage> rootUserMessage = query.from(PersistentUserMessage.class);
     Join<PersistentUserMessage, PersistentMessage> messageJoin = rootUserMessage.join("message", JoinType.INNER);
     Join<PersistentUserMessage, PersistentUser> userJoin = rootUserMessage.join("user", JoinType.INNER);
     query.select(rootUserMessage);
+    query.where(userMessagePredicates(builder, rootUserMessage, userJoin, userId, notificationStatus, readStatus));
+    query.orderBy(builder.desc(messageJoin.get("creationDate")), builder.desc(rootUserMessage.get("id")));
+    Query<PersistentUserMessage> q = currentSession().createQuery(query);
+    q.setFirstResult(offset);
+    if (limit != null) {
+      q.setMaxResults(limit);
+    }
+    return q.list();
+  }
+
+  /** How many of a user's messages {@link #listForUser} would page through for the same filter. */
+  public long countForUser(String userId, PersistentUserMessageNotificationStatus notificationStatus,
+                           PersistentUserMessageReadStatus readStatus) {
+    CriteriaBuilder builder = currentSession().getCriteriaBuilder();
+    CriteriaQuery<Long> countCriteria = builder.createQuery(Long.class);
+    Root<PersistentUserMessage> countRoot = countCriteria.from(PersistentUserMessage.class);
+    Join<PersistentUserMessage, PersistentUser> userJoin = countRoot.join("user", JoinType.INNER);
+    countCriteria.where(userMessagePredicates(builder, countRoot, userJoin, userId, notificationStatus, readStatus));
+    countCriteria.select(builder.count(countRoot));
+    return currentSession().createQuery(countCriteria).uniqueResult();
+  }
+
+  private static Predicate[] userMessagePredicates(CriteriaBuilder builder, Root<PersistentUserMessage> root,
+                                                   Join<PersistentUserMessage, PersistentUser> userJoin,
+                                                   String userId,
+                                                   PersistentUserMessageNotificationStatus notificationStatus,
+                                                   PersistentUserMessageReadStatus readStatus) {
     List<Predicate> andPredicates = new ArrayList<>();
     andPredicates.add(builder.equal(userJoin.get("cid"), userId));
     if (notificationStatus != null) {
-      andPredicates.add(builder.equal(rootUserMessage.get("notificationStatus"), notificationStatus));
+      andPredicates.add(builder.equal(root.get("notificationStatus"), notificationStatus));
     }
     if (readStatus != null) {
-      andPredicates.add(builder.equal(rootUserMessage.get("readStatus"), readStatus));
+      andPredicates.add(builder.equal(root.get("readStatus"), readStatus));
     }
-    query.where(andPredicates.toArray(new Predicate[andPredicates.size()]));
-    query.orderBy(builder.desc(messageJoin.get("creationDate")));
-    Query<PersistentUserMessage> q = currentSession().createQuery(query);
-    return q.list();
+    return andPredicates.toArray(new Predicate[0]);
   }
 
   /**
