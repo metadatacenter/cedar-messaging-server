@@ -6,6 +6,7 @@ import io.dropwizard.testing.ResourceHelpers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.config.environment.CedarEnvironmentSource;
@@ -29,6 +30,7 @@ import java.util.Map;
  * connections pass through the proxy, so the outage leaves the database, and the messaging tests that
  * share it, untouched.
  */
+@Tag("integration")
 public class MessagingMySqlOutageTest {
 
   private static TcpFaultProxy databaseProxy;
