@@ -4,6 +4,7 @@ import io.dropwizard.testing.DropwizardTestSupport;
 import io.dropwizard.testing.ResourceHelpers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.metadatacenter.cedar.messaging.resources.CommandResource;
 import org.metadatacenter.cedar.messaging.resources.MessagesResource;
@@ -25,6 +26,7 @@ import java.util.Map;
  * <p>{@code IndexResource} is deliberately outside this surface: it serves the server's public
  * index and asserts no login.
  */
+@Tag("integration")
 public class MessagingRoutesRespondTest {
 
   static {

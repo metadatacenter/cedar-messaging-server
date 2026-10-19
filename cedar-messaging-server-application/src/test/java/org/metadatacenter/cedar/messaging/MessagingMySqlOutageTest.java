@@ -1,19 +1,19 @@
 package org.metadatacenter.cedar.messaging;
 
-import ch.vorburger.mariadb4j.DB;
-import ch.vorburger.mariadb4j.DBConfigurationBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.dropwizard.testing.DropwizardTestSupport;
 import io.dropwizard.testing.ResourceHelpers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.metadatacenter.config.CedarConfig;
 import org.metadatacenter.config.environment.CedarEnvironmentSource;
 import org.metadatacenter.config.environment.CedarEnvironmentVariableProvider;
 import org.metadatacenter.model.SystemComponent;
 import org.metadatacenter.util.json.JsonMapper;
+import org.metadatacenter.util.test.EmbeddedCedarMySql;
 import org.metadatacenter.util.test.TcpFaultProxy;
 import org.metadatacenter.util.test.TestAuthUtil;
 
@@ -25,30 +25,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Boots against an isolated MariaDB, then stops that database before crossing the authenticated
- * message-read boundary. A separate database process keeps this destructive fixture independent
- * from the embedded store shared by the messaging lifecycle tests.
+ * Boots against the shared embedded MariaDB through a TCP fault proxy, then breaks every connection
+ * through the proxy before crossing the authenticated message-read boundary. Only this server's
+ * connections pass through the proxy, so the outage leaves the database, and the messaging tests that
+ * share it, untouched.
  */
+@Tag("integration")
 public class MessagingMySqlOutageTest {
 
-  private static DB database;
   private static TcpFaultProxy databaseProxy;
 
   static {
     try {
-      DBConfigurationBuilder databaseConfiguration = DBConfigurationBuilder.newBuilder();
-      databaseConfiguration.addArg("--bind-address=127.0.0.1");
-      databaseConfiguration.setPort(0);
-      database = DB.newEmbeddedDB(databaseConfiguration.build());
-      database.start();
-      databaseProxy = TcpFaultProxy.start(
-          "127.0.0.1", database.getConfiguration().getPort());
+      EmbeddedCedarMySql.startAndRedirectEnvironment("CEDAR_MESSAGING_MYSQL", Map.of());
+      databaseProxy = TcpFaultProxy.start("127.0.0.1",
+          Integer.parseInt(CedarEnvironmentSource.getAll().get("CEDAR_MESSAGING_MYSQL_PORT")));
 
       Map<String, String> environment = new HashMap<>(CedarEnvironmentSource.getAll());
-      environment.put("CEDAR_MESSAGING_MYSQL_HOST", "127.0.0.1");
       environment.put("CEDAR_MESSAGING_MYSQL_PORT", String.valueOf(databaseProxy.port()));
-      environment.put("CEDAR_MESSAGING_MYSQL_USER", "root");
-      environment.put("CEDAR_MESSAGING_MYSQL_PASSWORD", "");
       environment.put("CEDAR_MESSAGING_HTTP_PORT", "0");
       environment.put("CEDAR_MESSAGING_ADMIN_PORT", "0");
       environment.put("CEDAR_MESSAGING_STOP_PORT", "0");
@@ -81,11 +75,7 @@ public class MessagingMySqlOutageTest {
     try {
       SERVER.after();
     } finally {
-      try {
-        databaseProxy.close();
-      } finally {
-        database.stop();
-      }
+      databaseProxy.close();
     }
   }
 
