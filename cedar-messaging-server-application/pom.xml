@@ -20,6 +20,8 @@
     <cedar.shade.main.class>org.metadatacenter.cedar.messaging.MessagingServerApplication</cedar.shade.main.class>
     <!-- Line coverage measured on 2026-10-26: 98.9%. The build fails below this floor. -->
     <cedar.coverage.line.minimum>0.96</cedar.coverage.line.minimum>
+    <!-- Branch coverage measured on 2026-10-26: 97.5%. The build fails below this floor. -->
+    <cedar.coverage.branch.minimum>0.95</cedar.coverage.branch.minimum>
   </properties>
 
   <dependencies>
