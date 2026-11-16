@@ -27,17 +27,10 @@ public class PersistentMessageSenderDAO extends AbstractDAO<PersistentMessageSen
     return q.uniqueResult();
   }
 
-  public Long create(PersistentMessageSender persistentMessageSender) {
-    return persist(persistentMessageSender).getId();
-  }
-
   /**
    * The user sender row for this cid, inserting one if no request has already. See
    * {@link PersistentUserDAO#findOrCreateByCid} for why looking up and then inserting is not enough,
    * and why the violation cannot be caught once it has happened.
-   * <p>
-   * Only the user senders go through this. A process sender is keyed by its process rather than by a
-   * cid it brings with it, and nothing in the schema makes one process hold one row.
    */
   public PersistentMessageSender findOrCreateByCid(String cid, PersistentMessageSenderType senderType) {
     currentSession()
@@ -46,18 +39,29 @@ public class PersistentMessageSenderDAO extends AbstractDAO<PersistentMessageSen
         .setParameter("cid", cid)
         .setParameter("senderType", senderType.name())
         .executeUpdate();
+    return lastInserted();
+  }
+
+  /**
+   * The sender row for this process, inserting one under {@code newCid} if no request has already.
+   * {@code UK_message_sender_processId} holds one process to one row, so two first sends from a process
+   * at once get the same row, as two first sends from a user do in {@link #findOrCreateByCid}. Without
+   * it, both would insert, and every later lookup of the process would find two rows.
+   */
+  public PersistentMessageSender findOrCreateByProcessId(PersistentMessageSenderProcessId processId, String newCid) {
+    currentSession()
+        .createNativeMutationQuery("INSERT INTO message_sender (cid, senderType, processId)"
+            + " VALUES (:cid, :senderType, :processId) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)")
+        .setParameter("cid", newCid)
+        .setParameter("senderType", PersistentMessageSenderType.PROCESS.name())
+        .setParameter("processId", processId.name())
+        .executeUpdate();
+    return lastInserted();
+  }
+
+  private PersistentMessageSender lastInserted() {
     return currentSession()
         .createNativeQuery("SELECT * FROM message_sender WHERE id = LAST_INSERT_ID()", PersistentMessageSender.class)
         .getSingleResult();
-  }
-
-  public PersistentMessageSender findByProcessId(PersistentMessageSenderProcessId processId) {
-    CriteriaBuilder builder = currentSession().getCriteriaBuilder();
-    CriteriaQuery<PersistentMessageSender> query = builder.createQuery(PersistentMessageSender.class);
-    Root<PersistentMessageSender> root = query.from(PersistentMessageSender.class);
-    query.select(root);
-    query.where(builder.equal(root.get("processId"), processId));
-    Query<PersistentMessageSender> q = currentSession().createQuery(query);
-    return q.uniqueResult();
   }
 }
