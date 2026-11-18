@@ -40,7 +40,6 @@ public class MessagingRoutesRespondTest {
     EmbeddedCedarMySql.startAndRedirectEnvironment("CEDAR_MESSAGING_MYSQL", Map.of(
         "CEDAR_MESSAGING_HTTP_PORT", "0",
         "CEDAR_MESSAGING_ADMIN_PORT", "0",
-        "CEDAR_MESSAGING_STOP_PORT", "0",
         "CEDAR_REDIS_PERSISTENT_PORT", "1"));
   }
 

@@ -63,7 +63,6 @@ public class MessagingMySqlOutageTest {
       environment.put("CEDAR_MESSAGING_MYSQL_PORT", String.valueOf(databaseProxy.port()));
       environment.put("CEDAR_MESSAGING_HTTP_PORT", "0");
       environment.put("CEDAR_MESSAGING_ADMIN_PORT", "0");
-      environment.put("CEDAR_MESSAGING_STOP_PORT", "0");
       environment.put("CEDAR_REDIS_PERSISTENT_PORT", "1");
       CedarEnvironmentSource.setOverride(environment);
     } catch (Exception e) {
