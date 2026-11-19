@@ -8,10 +8,24 @@ import jakarta.ws.rs.core.Response.Status;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.metadatacenter.util.json.JsonMapper;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.metadatacenter.constant.HttpConstants.CONTENT_TYPE_APPLICATION_MERGE_PATCH_JSON;
 
@@ -95,11 +109,63 @@ public class MessageRefusalsTest extends AbstractMessagingServerResourceTest {
         message(toUser2(), Map.of("senderType", "process", "processId", "submission.IMMPORT"))));
   }
 
+  /** A process sends under one sender row however often it sends, and each message names that row. */
   @Test
-  public void aProcessSendsUnderOneSenderHoweverOftenItSends() {
+  public void aProcessSendsUnderOneSenderHoweverOftenItSends() throws Exception {
     Map<String, Object> from = Map.of("senderType", "process", "processId", "submission.IMMPORT");
-    assertStatus(Status.OK, send(authHeaderAdmin, message(toUser2(), from)));
-    assertStatus(Status.OK, send(authHeaderAdmin, message(toUser2(), from)));
+
+    Map<String, Object> first = sender(send(authHeaderAdmin, message(toUser2(), from)));
+    Map<String, Object> second = sender(send(authHeaderAdmin, message(toUser2(), from)));
+
+    Assertions.assertEquals("process", first.get("senderType"), first.toString());
+    Assertions.assertEquals("submission.IMMPORT", first.get("processId"), first.toString());
+    Assertions.assertEquals(first.get("id"), second.get("id"), "both messages name the one sender");
+    Assertions.assertEquals(List.of(first.get("id")), MessageStore.processSenders("SUBMISSION_IMMPORT"));
+  }
+
+  /**
+   * Two first sends from a process at once still leave one sender row. Each used to look the row up,
+   * find none and insert one, after which the lookup found two rows and every send from the process
+   * failed.
+   */
+  @Test
+  public void concurrentFirstSendsFromAProcessShareOneSender() throws Exception {
+    MessageStore.forgetProcess("SUBMISSION_NCBI");
+    Map<String, Object> from = Map.of("senderType", "process", "processId", "submission.NCBI");
+    int concurrent = 6;
+    ExecutorService pool = Executors.newFixedThreadPool(concurrent);
+    CountDownLatch together = new CountDownLatch(1);
+    List<Future<Map<String, Object>>> senders = new ArrayList<>();
+    try {
+      for (int i = 0; i < concurrent; i++) {
+        senders.add(pool.submit(() -> {
+          together.await();
+          return sender(send(authHeaderAdmin, message(toUser2(), from)));
+        }));
+      }
+      together.countDown();
+      Set<Object> named = new HashSet<>();
+      for (Future<Map<String, Object>> sender : senders) {
+        named.add(sender.get(60, TimeUnit.SECONDS).get("id"));
+      }
+      Assertions.assertEquals(1, named.size(), named.toString());
+      Assertions.assertEquals(List.copyOf(named), MessageStore.processSenders("SUBMISSION_NCBI"));
+    } finally {
+      pool.shutdownNow();
+    }
+  }
+
+  /** The sender a successful send answered with. */
+  private static Map<String, Object> sender(Response response) {
+    String body = response.readEntity(String.class);
+    Assertions.assertEquals(Status.OK.getStatusCode(), response.getStatus(), body);
+    try {
+      return JsonMapper.STRICT_MAPPER.convertValue(JsonMapper.STRICT_MAPPER.readTree(body).get("from"),
+          new TypeReference<>() {
+          });
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   @Test

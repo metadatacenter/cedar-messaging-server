@@ -234,15 +234,8 @@ public class MessagesResource extends AbstractMessagingResource {
           return CedarResponse.forbidden().message("You do not have permission to send a message in the name of " +
               "a process").build();
         }
-        persistentMessageSender = messageSenderDAO.findByProcessId(processId);
-        if (persistentMessageSender == null) {
-          persistentMessageSender = new PersistentMessageSender();
-          persistentMessageSender.setSenderType(PersistentMessageSenderType.PROCESS);
-          persistentMessageSender.setProcessId(processId);
-          String newSenderProcessId = linkedDataUtil.buildNewLinkedDataId(CedarResourceType.PROCESS);
-          persistentMessageSender.setCid(newSenderProcessId);
-          messageSenderDAO.create(persistentMessageSender);
-        }
+        persistentMessageSender = messageSenderDAO.findOrCreateByProcessId(processId,
+            linkedDataUtil.buildNewLinkedDataId(CedarResourceType.PROCESS));
       }
     }
 

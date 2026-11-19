@@ -6,7 +6,13 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "message_sender",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"cid"}, name = "UK_message_sender_cid")
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"cid"}, name = "UK_message_sender_cid"),
+        // One process holds one row. User senders leave processId null, which the constraint allows
+        // any number of. An existing database takes this constraint from
+        // cedar-messaging-server-core/db-migrations/2026-11-16-message-sender-process-unique.sql.
+        @UniqueConstraint(columnNames = {"processId"}, name = "UK_message_sender_processId")
+    }
 )
 public class PersistentMessageSender {
 

@@ -11,7 +11,7 @@ import org.metadatacenter.messaging.model.PersistentMessageSenderProcessId;
 import org.metadatacenter.messaging.model.PersistentMessageSenderType;
 import org.metadatacenter.server.cache.user.UserSummaryCache;
 import org.metadatacenter.server.security.model.user.CedarUserSummary;
-import org.metadatacenter.util.json.JsonMapper;
+import org.metadatacenter.util.test.TestAuthUtil;
 
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.GenericType;
@@ -59,15 +59,11 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     to.put("@id", cedarConfig.getTestUsers().getTestUser2().getId());
     content.put("to", to);
 
-    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(content));
-
     Entity postContent = Entity.entity(content, MediaType.APPLICATION_JSON);
     Response response = client.target(url).request().header("Authorization", authHeader1).post(postContent);
     Assertions.assertEquals(Status.OK.getStatusCode(), response.getStatus());
     Assertions.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
-    Map<String, Object> summary = response.readEntity(new GenericType<>() {
-    });
-    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(summary));
+    assertSentBy(response, "user", cedarConfig.getTestUsers().getTestUser1().getId(), null);
   }
 
   @Test
@@ -82,15 +78,11 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     to.put("@id", cedarConfig.getTestUsers().getTestUser1().getId());
     content.put("to", to);
 
-    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(content));
-
     Entity postContent = Entity.entity(content, MediaType.APPLICATION_JSON);
     Response response = client.target(url).request().header("Authorization", authHeaderAdmin).post(postContent);
     Assertions.assertEquals(Status.OK.getStatusCode(), response.getStatus());
     Assertions.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
-    Map<String, Object> summary = response.readEntity(new GenericType<>() {
-    });
-    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(summary));
+    assertSentBy(response, "user", TestAuthUtil.getAdminUser(cedarConfig).getId(), null);
   }
 
   /**
@@ -246,7 +238,7 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
   }
 
   @Test
-  public void sendFromProcessToUser2() {
+  public void sendFromProcessToUser2() throws Exception {
     String url = baseUrlMessages;
     Map<String, Object> content = new HashMap<>();
     content.put("subject", "Test message from Process to Test User 2");
@@ -262,15 +254,27 @@ public class MessagesResourceTest extends AbstractMessagingServerResourceTest {
     from.put("processId", PersistentMessageSenderProcessId.SUBMISSION_NCBI.getValue());
     content.put("from", from);
 
-    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(content));
-
     Entity postContent = Entity.entity(content, MediaType.APPLICATION_JSON);
     Response response = client.target(url).request().header("Authorization", authHeaderAdmin).post(postContent);
     Assertions.assertEquals(Status.OK.getStatusCode(), response.getStatus());
     Assertions.assertEquals(MediaType.APPLICATION_JSON, response.getHeaderString(HttpHeaders.CONTENT_TYPE));
-    Map<String, Object> summary = response.readEntity(new GenericType<>() {
+    String processSender = assertSentBy(response, "process", null, "submission.NCBI");
+    Assertions.assertTrue(MessageStore.processSenders("SUBMISSION_NCBI").contains(processSender), processSender);
+  }
+
+  /** Asserts who the sent message names as its sender, and returns the sender's identifier. */
+  private static String assertSentBy(Response response, String senderType, String id, String processId) {
+    Map<String, Object> message = response.readEntity(new GenericType<>() {
     });
-    System.out.println(JsonMapper.STRICT_MAPPER.valueToTree(summary));
+    @SuppressWarnings("unchecked")
+    Map<String, Object> from = (Map<String, Object>) message.get("from");
+    Assertions.assertNotNull(from, message.toString());
+    Assertions.assertEquals(senderType, from.get("senderType"), from.toString());
+    if (id != null) {
+      Assertions.assertEquals(id, from.get("id"), from.toString());
+    }
+    Assertions.assertEquals(processId, from.get("processId"), from.toString());
+    return (String) from.get("id");
   }
 
 }

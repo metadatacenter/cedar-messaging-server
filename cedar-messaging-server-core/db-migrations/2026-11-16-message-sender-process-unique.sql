@@ -1,0 +1,32 @@
+-- Holds each submission process to one message_sender row. MySQL 8 / InnoDB, messaging database.
+--
+-- A message sent in a process's name is attributed to that process's message_sender row. Messaging
+-- now inserts the row, or reads the one already there, in one statement keyed by this constraint.
+-- Before it, two first sends from one process at once could each insert a row, after which every send
+-- from that process failed, because the lookup expected one row.
+--
+-- Run it before starting the messaging server that carries the constraint. That server's Hibernate
+-- schema update would otherwise try to add the constraint itself, and fail quietly on duplicates.
+--
+-- 1. Check for duplicates first. This query must return no rows:
+--
+--      SELECT processId, COUNT(*) AS senderRows, MIN(id) AS keep
+--      FROM message_sender
+--      WHERE processId IS NOT NULL
+--      GROUP BY processId
+--      HAVING COUNT(*) > 1;
+--
+--    Any row it returns is a process with more than one sender row. Point that process's messages at
+--    the row in `keep`, then delete the others, before going on. For each such process P with the
+--    kept row K:
+--
+--      UPDATE message SET message_sender = K
+--      WHERE message_sender IN (SELECT id FROM message_sender WHERE processId = 'P' AND id <> K);
+--      DELETE FROM message_sender WHERE processId = 'P' AND id <> K;
+--
+--    Then run the check again.
+--
+-- 2. Add the constraint. User senders leave processId null, and a unique constraint allows any number
+--    of nulls.
+
+ALTER TABLE message_sender ADD CONSTRAINT UK_message_sender_processId UNIQUE (processId);
