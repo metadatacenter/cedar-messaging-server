@@ -28,7 +28,7 @@ import java.util.Map;
 
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 
-@Path("/summary")
+@Path("/messages/summary")
 @Produces(MediaType.APPLICATION_JSON)
 @Tag(name = "Messages")
 @SecurityRequirement(name = "api_key")

@@ -23,7 +23,7 @@ class OpenApiContractTest {
     assertResponse(spec, "/messages", "get", "MessagePage");
     assertResponse(spec, "/messages", "post", "Message");
     assertResponse(spec, "/messages/{id}", "patch", "Message");
-    assertResponse(spec, "/summary", "get", "MessageSummary");
+    assertResponse(spec, "/messages/summary", "get", "MessageSummary");
     assertResponse(spec, "/command/mark-all-as-read", "post", "UpdatedCount");
 
     JsonNode requestProperties = spec.at("/components/schemas/MessageRequest/properties");

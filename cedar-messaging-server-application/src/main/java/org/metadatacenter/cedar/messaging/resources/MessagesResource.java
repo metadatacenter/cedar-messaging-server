@@ -36,7 +36,9 @@ import java.time.ZonedDateTime;
 import java.util.*;
 
 import static org.metadatacenter.constant.CedarPathParameters.PP_ID;
+import static org.metadatacenter.constant.CedarQueryParameters.QP_LIMIT;
 import static org.metadatacenter.constant.CedarQueryParameters.QP_NOTIFICATION_STATUS;
+import static org.metadatacenter.constant.CedarQueryParameters.QP_OFFSET;
 import static org.metadatacenter.constant.HttpConstants.CONTENT_TYPE_APPLICATION_MERGE_PATCH_JSON;
 import static org.metadatacenter.rest.assertion.GenericAssertions.LoggedIn;
 
@@ -86,13 +88,14 @@ public class MessagesResource extends AbstractMessagingResource {
       @QueryParam(QP_NOTIFICATION_STATUS) Optional<String> notificationStatus,
       @Parameter(description = "How many messages to return, from 1 to " + MAX_PAGE_SIZE + ". Defaults to "
           + DEFAULT_PAGE_SIZE + ".")
-      @QueryParam("limit") Optional<Integer> limit,
+      @QueryParam(QP_LIMIT) Optional<Integer> limit,
       @Parameter(description = "How many messages to skip. Defaults to 0.")
-      @QueryParam("offset") Optional<Integer> offset) throws CedarException {
+      @QueryParam(QP_OFFSET) Optional<Integer> offset) throws CedarException {
     CedarRequestContext c = buildRequestContext();
     c.must(c.user()).be(LoggedIn);
 
-    PagedQuery page = new PagedQuery(DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE).limit(limit).offset(offset);
+    PagedQuery page = new PagedQuery(DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE).limit(limit).offset(offset)
+        .queryParameters(uriInfo.getQueryParameters());
     page.validate();
 
     PersistentUserMessageNotificationStatus notificationStatusEnum = null;

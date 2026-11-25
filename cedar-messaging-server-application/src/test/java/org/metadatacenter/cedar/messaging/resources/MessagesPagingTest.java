@@ -136,6 +136,18 @@ public class MessagesPagingTest extends AbstractMessagingServerResourceTest {
   }
 
   @Test
+  public void aPageNumberParameterIsRefusedNamingIt() throws Exception {
+    for (String name : List.of("page", "pageSize", "page_size")) {
+      Response response = client.target(baseUrlMessages + "?" + name + "=2").request()
+          .header("Authorization", authHeader2).get();
+      String body = response.readEntity(String.class);
+      assertEquals(400, response.getStatus(), name + " -> " + body);
+      assertEquals("2", JsonMapper.STRICT_MAPPER.readTree(body).path("parameters").path(name).asText(null),
+          name + " -> " + body);
+    }
+  }
+
+  @Test
   public void aCallerSeesOnlyTheirOwnMessages() throws Exception {
     sendToUser2(3);
 

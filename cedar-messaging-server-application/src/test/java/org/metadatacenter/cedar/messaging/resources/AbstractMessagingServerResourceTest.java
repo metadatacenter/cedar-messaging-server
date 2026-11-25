@@ -67,7 +67,7 @@ public abstract class AbstractMessagingServerResourceTest {
 
     AbstractMessagingServerResourceTest.cedarConfig = cedarConfig;
 
-    baseUrlSummary = BASE_URL + ":" + SERVER.getLocalPort() + "/summary";
+    baseUrlSummary = BASE_URL + ":" + SERVER.getLocalPort() + "/messages/summary";
     baseUrlMessages = BASE_URL + ":" + SERVER.getLocalPort() + "/messages";
 
     // Dropwizard's default client config enables gzip, which leaves the client trying to gunzip a

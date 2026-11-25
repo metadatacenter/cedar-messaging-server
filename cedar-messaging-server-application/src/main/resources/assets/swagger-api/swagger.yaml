@@ -363,6 +363,36 @@ paths:
       summary: Send a message
       tags:
       - Messages
+  /messages/summary:
+    get:
+      description: "Report how many messages the caller has in total, how many are\
+        \ unread, and how many have not yet been notified. This is the counts alone,\
+        \ for a workbench badge that does not want the messages themselves."
+      operationId: getSummary
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageSummary"
+          description: "Total, unread, and not-yet-notified counts"
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CedarError"
+          description: Internal server error
+      security:
+      - api_key: []
+      summary: Count the caller's messages
+      tags:
+      - Messages
   /messages/{id}:
     patch:
       description: "Change the notification state of one of the caller's own messages,\
@@ -424,36 +454,6 @@ paths:
       security:
       - api_key: []
       summary: Update a message's notification state
-      tags:
-      - Messages
-  /summary:
-    get:
-      description: "Report how many messages the caller has in total, how many are\
-        \ unread, and how many have not yet been notified. This is the counts alone,\
-        \ for a workbench badge that does not want the messages themselves."
-      operationId: getSummary
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MessageSummary"
-          description: "Total, unread, and not-yet-notified counts"
-        "401":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CedarError"
-          description: Unauthorized
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CedarError"
-          description: Internal server error
-      security:
-      - api_key: []
-      summary: Count the caller's messages
       tags:
       - Messages
 components:
